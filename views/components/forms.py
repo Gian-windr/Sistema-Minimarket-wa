@@ -22,12 +22,12 @@ class ProductoForm(tk.Toplevel):
         self.entries = {}
         
         self._crear_interfaz()
-        if producto_data is not None:
+        if producto_data is not None and not producto_data.empty:
             self._llenar_campos()
     
     def _crear_interfaz(self):
         # Título
-        titulo = "Modificar Producto" if self.producto_data else "Registrar Producto"
+        titulo = "Modificar Producto" if (self.producto_data is not None and not self.producto_data.empty) else "Registrar Producto"
         tk.Label(self, text=titulo, font=("Arial", 18), bg="white", fg=THEME_COLOR).pack(pady=10)
         
         # Campos de entrada
@@ -37,7 +37,7 @@ class ProductoForm(tk.Toplevel):
             frame.pack(pady=5)
             tk.Label(frame, text=label+":", bg="white").pack(side="left")
             entry = tk.Entry(frame)
-            if not self.producto_data:  # Solo poner default si es nuevo producto
+            if self.producto_data is None or self.producto_data.empty:  # Solo poner default si es nuevo producto
                 entry.insert(0, default)
             entry.pack(side="left")
             self.entries[label] = entry
@@ -73,12 +73,12 @@ class ProductoForm(tk.Toplevel):
         frame_botones = tk.Frame(self, bg="white")
         frame_botones.pack(pady=20)
         
-        texto_guardar = "Guardar Cambios" if self.producto_data else "Guardar"
+        texto_guardar = "Guardar Cambios" if (self.producto_data is not None and not self.producto_data.empty) else "Guardar"
         boton_grande(frame_botones, texto_guardar, INFO_COLOR, self._guardar, "💾").pack(side="left", padx=5)
         boton_grande(frame_botones, "Cancelar", ERROR_COLOR, self.destroy, "❌").pack(side="left", padx=5)
     
     def _llenar_campos(self):
-        if not self.producto_data:
+        if self.producto_data is None or self.producto_data.empty:
             return
         
         # Llenar campos de texto

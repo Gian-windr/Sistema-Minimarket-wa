@@ -1,83 +1,146 @@
-# Modelo para manejar los datos de productos
+# Modelo para manejar los datos de productos - Migrado a SQLite
 
-import pandas as pd
 import os
 import shutil
 from config.settings import *
 from utils.helpers import generar_id
+from models.base_model import BaseModel
+from db.database import db
 
-class ProductoModel:
+class ProductoModel(BaseModel):
     def __init__(self):
+        # Definir columnas de la tabla productos
+        columns = ['id', 'nombre', 'categoria', 'tipo_corte', 'precio', 'stock', 'stock_minimo', 'imagen']
+        super().__init__('productos', columns)
         self.columnas = ["ID", "Nombre", "Categoría", "Tipo de Corte", "Precio", "Stock", "Stock Mínimo", "Imagen"]
-        self._inicializar_archivo()
-
-    def _inicializar_archivo(self):
-        if not os.path.exists(PRODUCTOS_FILE):
-            pd.DataFrame(columns=self.columnas).to_excel(PRODUCTOS_FILE, index=False)
     
     def obtener_todos(self):
+        """Obtiene todos los productos y los convierte al formato esperado por las vistas"""
         try:
-            return pd.read_excel(PRODUCTOS_FILE).reindex(columns=self.columnas)
-        except:
+            productos = self.get_all()
+            # Convertir a formato pandas-like para compatibilidad
+            import pandas as pd
+            
+            if not productos:
+                return pd.DataFrame(columns=self.columnas)
+            
+            # Mapear campos de SQLite a formato Excel esperado
+            data = []
+            for producto in productos:
+                data.append({
+                    "ID": producto.get('id', ''),
+                    "Nombre": producto.get('nombre', ''),
+                    "Categoría": producto.get('categoria', ''),
+                    "Tipo de Corte": producto.get('tipo_corte', ''),
+                    "Precio": producto.get('precio', 0),
+                    "Stock": producto.get('stock', 0),
+                    "Stock Mínimo": producto.get('stock_minimo', 0),
+                    "Imagen": producto.get('imagen', '')
+                })
+            
+            return pd.DataFrame(data, columns=self.columnas)
+        except Exception as e:
+            print(f"Error obteniendo productos: {e}")
+            import pandas as pd
             return pd.DataFrame(columns=self.columnas)
     
     def obtener_por_id(self, producto_id):
-        df = self.obtener_todos()
-        productos = df[df["ID"] == producto_id]
-        return productos.iloc[0] if not productos.empty else None
+        """Obtiene un producto por ID y lo convierte al formato esperado"""
+        try:
+            producto = self.get_by_id(producto_id, 'id')
+            if not producto:
+                return None
+            
+            # Convertir a formato pandas-like para compatibilidad
+            import pandas as pd
+            return pd.Series({
+                "ID": producto.get('id', ''),
+                "Nombre": producto.get('nombre', ''),
+                "Categoría": producto.get('categoria', ''),
+                "Tipo de Corte": producto.get('tipo_corte', ''),
+                "Precio": producto.get('precio', 0),
+                "Stock": producto.get('stock', 0),
+                "Stock Mínimo": producto.get('stock_minimo', 0),
+                "Imagen": producto.get('imagen', '')
+            })
+        except Exception as e:
+            print(f"Error obteniendo producto {producto_id}: {e}")
+            return None
     
-    def crear(self, datos): 
-        df = self.obtener_todos()   
-        # Generar ID único
-        nuevo_id = generar_id("P")
-        datos["ID"] = nuevo_id
-        # Manejar imagen si existe
-        if datos.get("imagen_origen"):
-            imagen_destino = self._copiar_imagen(datos["imagen_origen"], nuevo_id)
-            datos["Imagen"] = imagen_destino
-        else:
-            datos["Imagen"] = ""
-        
-        # Crear DataFrame con el nuevo producto
-        nuevo_producto = pd.DataFrame([datos], columns=self.columnas)
-        df = pd.concat([df, nuevo_producto], ignore_index=True)
-        
-        # Guardar
-        df.to_excel(PRODUCTOS_FILE, index=False)
-        return nuevo_id
+    def crear(self, datos):
+        """Crea un nuevo producto en SQLite"""
+        try:
+            # Generar ID único
+            nuevo_id = generar_id("P")
+            
+            # Manejar imagen si existe
+            imagen_destino = ""
+            if datos.get("imagen_origen"):
+                imagen_destino = self._copiar_imagen(datos["imagen_origen"], nuevo_id)
+            
+            # Mapear datos al formato SQLite
+            producto_data = {
+                'id': nuevo_id,
+                'nombre': datos.get('Nombre', ''),
+                'categoria': datos.get('Categoría', ''),
+                'tipo_corte': datos.get('Tipo de Corte', ''),
+                'precio': float(datos.get('Precio', 0)),
+                'stock': int(datos.get('Stock inicial', datos.get('Stock', 0))),
+                'stock_minimo': int(datos.get('Stock Mínimo', 0)),
+                'imagen': imagen_destino
+            }
+            
+            # Crear producto usando el método base
+            self.create(producto_data)
+            return nuevo_id
+            
+        except Exception as e:
+            print(f"Error creando producto: {e}")
+            raise
     
-    # Actualiza un producto existente
     def actualizar(self, producto_id, datos):
-        df = self.obtener_todos()
-        indice = df[df["ID"] == producto_id].index
-        if indice.empty:
-            raise ValueError(f"Producto con ID {producto_id} no encontrado")
-        
-        idx = indice[0]
-        
-        # Actualizar campos
-        for campo, valor in datos.items():
-            if campo in self.columnas and campo != "ID":
-                df.at[idx, campo] = valor
-        
-        # Manejar imagen si se proporciona una nueva
-        if datos.get("imagen_origen"):
-            imagen_destino = self._copiar_imagen(datos["imagen_origen"], producto_id)
-            df.at[idx, "Imagen"] = imagen_destino
-        
-        # Guardar
-        df.to_excel(PRODUCTOS_FILE, index=False)
-        return True
+        """Actualiza un producto existente en SQLite"""
+        try:
+            # Verificar que el producto existe
+            if not self.exists(producto_id, 'id'):
+                raise ValueError(f"Producto con ID {producto_id} no encontrado")
+            
+            # Manejar imagen si se proporciona una nueva
+            imagen_destino = None
+            if datos.get("imagen_origen"):
+                imagen_destino = self._copiar_imagen(datos["imagen_origen"], producto_id)
+            
+            # Mapear datos al formato SQLite
+            update_data = {}
+            if 'Nombre' in datos:
+                update_data['nombre'] = datos['Nombre']
+            if 'Categoría' in datos:
+                update_data['categoria'] = datos['Categoría']
+            if 'Tipo de Corte' in datos:
+                update_data['tipo_corte'] = datos['Tipo de Corte']
+            if 'Precio' in datos:
+                update_data['precio'] = float(datos['Precio'])
+            if 'Stock inicial' in datos or 'Stock' in datos:
+                update_data['stock'] = int(datos.get('Stock inicial', datos.get('Stock', 0)))
+            if 'Stock Mínimo' in datos:
+                update_data['stock_minimo'] = int(datos['Stock Mínimo'])
+            if imagen_destino:
+                update_data['imagen'] = imagen_destino
+            
+            # Actualizar usando el método base
+            return self.update(producto_id, update_data, 'id')
+            
+        except Exception as e:
+            print(f"Error actualizando producto {producto_id}: {e}")
+            raise
     
-    # Elimina un producto
     def eliminar(self, producto_id):
-        df = self.obtener_todos()
-        df_nuevo = df[df["ID"] != producto_id]
-        if len(df_nuevo) == len(df):
-            return False  # No se encontró el producto
-        
-        df_nuevo.to_excel(PRODUCTOS_FILE, index=False)
-        return True
+        """Elimina un producto de SQLite"""
+        try:
+            return self.delete(producto_id, 'id')
+        except Exception as e:
+            print(f"Error eliminando producto {producto_id}: {e}")
+            return False
     
     # Copia una imagen al directorio de productos
     def _copiar_imagen(self, origen, producto_id):
@@ -92,36 +155,80 @@ class ProductoModel:
             print(f"Error al copiar imagen: {e}")
             return ""
     
-    # Busca productos por nombre, ID o categoría
     def buscar(self, termino):
-        df = self.obtener_todos()
-        if termino.strip():
-            termino = termino.lower()
-            mask = (
-                df["Nombre"].str.lower().str.contains(termino, na=False) |
-                df["ID"].str.lower().str.contains(termino, na=False) |
-                df["Categoría"].str.lower().str.contains(termino, na=False)
-            )
-            return df[mask]
-        return df
+        """Busca productos por nombre, ID o categoría usando SQLite"""
+        try:
+            if not termino.strip():
+                return self.obtener_todos()
+            
+            # Buscar en SQLite usando el método base
+            search_columns = ['nombre', 'id', 'categoria']
+            productos = self.search(termino, search_columns)
+            
+            # Convertir a formato pandas-like para compatibilidad
+            import pandas as pd
+            
+            if not productos:
+                return pd.DataFrame(columns=self.columnas)
+            
+            # Mapear campos de SQLite a formato Excel esperado
+            data = []
+            for producto in productos:
+                data.append({
+                    "ID": producto.get('id', ''),
+                    "Nombre": producto.get('nombre', ''),
+                    "Categoría": producto.get('categoria', ''),
+                    "Tipo de Corte": producto.get('tipo_corte', ''),
+                    "Precio": producto.get('precio', 0),
+                    "Stock": producto.get('stock', 0),
+                    "Stock Mínimo": producto.get('stock_minimo', 0),
+                    "Imagen": producto.get('imagen', '')
+                })
+            
+            return pd.DataFrame(data, columns=self.columnas)
+            
+        except Exception as e:
+            print(f"Error buscando productos: {e}")
+            import pandas as pd
+            return pd.DataFrame(columns=self.columnas)
     
-    # Obtiene productos con stock bajo o crítico
     def obtener_stock_bajo(self):
-        df = self.obtener_todos()
-        productos_problematicos = []
-        
-        for _, row in df.iterrows():
-            stock_actual = int(row["Stock"]) if pd.notna(row["Stock"]) else 0
-            stock_minimo = int(row["Stock Mínimo"]) if pd.notna(row["Stock Mínimo"]) else 0
-            if stock_minimo > 0:
-                if stock_actual <= stock_minimo:
-                    productos_problematicos.append({
-                        'tipo': 'critico',
-                        'producto': row
+        """Obtiene productos con stock bajo o crítico usando SQLite"""
+        try:
+            productos = self.get_all()
+            productos_problematicos = []
+            
+            for producto in productos:
+                stock_actual = int(producto.get('stock', 0))
+                stock_minimo = int(producto.get('stock_minimo', 0))
+                
+                if stock_minimo > 0:
+                    # Convertir producto a formato pandas-like para compatibilidad
+                    import pandas as pd
+                    producto_series = pd.Series({
+                        "ID": producto.get('id', ''),
+                        "Nombre": producto.get('nombre', ''),
+                        "Categoría": producto.get('categoria', ''),
+                        "Tipo de Corte": producto.get('tipo_corte', ''),
+                        "Precio": producto.get('precio', 0),
+                        "Stock": stock_actual,
+                        "Stock Mínimo": stock_minimo,
+                        "Imagen": producto.get('imagen', '')
                     })
-                elif stock_actual <= stock_minimo * 1.5:
-                    productos_problematicos.append({
-                        'tipo': 'bajo',
-                        'producto': row
-                    })
-        return productos_problematicos
+                    
+                    if stock_actual <= stock_minimo:
+                        productos_problematicos.append({
+                            'tipo': 'critico',
+                            'producto': producto_series
+                        })
+                    elif stock_actual <= stock_minimo * 1.5:
+                        productos_problematicos.append({
+                            'tipo': 'bajo',
+                            'producto': producto_series
+                        })
+            
+            return productos_problematicos
+            
+        except Exception as e:
+            print(f"Error obteniendo productos con stock bajo: {e}")
+            return []

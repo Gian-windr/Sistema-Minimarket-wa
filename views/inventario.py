@@ -104,7 +104,7 @@ class InventarioFrame(tk.Frame):
             producto_id = values[0]
             producto = self.producto_model.obtener_por_id(producto_id)
             
-            if producto is not None:
+            if producto is not None and not producto.empty:
                 imagen_path = producto.get("Imagen", "")
                 self.img_viewer.mostrar_imagen(imagen_path)
     
@@ -121,7 +121,7 @@ class InventarioFrame(tk.Frame):
         producto_id = item["values"][0]
         producto_data = self.producto_model.obtener_por_id(producto_id)
         
-        if producto_data is not None:
+        if producto_data is not None and not producto_data.empty:
             ModificarProductoForm(self, producto_data)
     
     def _eliminar_producto(self):

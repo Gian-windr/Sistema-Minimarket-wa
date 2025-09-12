@@ -153,12 +153,14 @@ class LoginVentana(tk.Tk):
             self.password_entry.focus()
     
     def _validar_credenciales(self, usuario, password):
+        """Valida credenciales usando SQLite"""
         try:
-            df = pd.read_excel(EMPLEADOS_FILE)
-            empleado = df[(df["Usuario"] == usuario) & (df["Contraseña"] == password)]
-            return not empleado.empty
-        except:
-            # Credenciales por defecto si no existe el archivo
+            from models.empleado import EmpleadoModel
+            empleado_model = EmpleadoModel()
+            return empleado_model.validar_credenciales(usuario, password)
+        except Exception as e:
+            print(f"Error validando credenciales: {e}")
+            # Credenciales por defecto si hay error
             return usuario == "admin" and password == "admin"
     
     def _abrir_dashboard(self):

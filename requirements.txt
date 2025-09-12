@@ -1,8 +1,14 @@
-# Sistema Minimarket Don Manuelito - Sprint 1
-# Dependencias mínimas necesarias
+# Sistema Minimarket Don Manuelito - SQLite Migration
+# Dependencias necesarias
 
 # Manejo de datos
 pandas>=1.5.0
 
+# Base de datos SQLite (incluido en Python estándar)
+# sqlite3 - No requiere instalación adicional
+
 # Manejo de imágenes
 Pillow>=9.0.0
+
+# Interfaz gráfica (si se usa tkinter - incluido en Python estándar)
+# tkinter - No requiere instalación adicional
