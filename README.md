@@ -46,11 +46,6 @@ pip install -r requirements.txt
 python main.py
 ```
 
-## 🔑 Credenciales por Defecto
-
-- **Usuario**: `admin`
-- **Contraseña**: `admin`
-
 ## 📁 Estructura del Proyecto
 
 ```
@@ -88,19 +83,7 @@ Sistema-Minimarket-wa/
 ### 🚧 Próximos Sprints
 - [ ] **Sprint 2**: Módulo de Ventas
 - [ ] **Sprint 3**: Módulo de Despachos  
-- [ ] **Sprint 4**: Gestión de Empleados
-- [ ] **Sprint 5**: Reportes y Analytics
-
-## 🎨 Capturas de Pantalla
-
-### Login
-![Login](docs/login-screenshot.png)
-
-### Dashboard
-![Dashboard](docs/dashboard-screenshot.png)
-
-### Inventario
-![Inventario](docs/inventario-screenshot.png)
+- [ ] **Sprint 4**: Gestión de Empleado, Reportes y Analytics
 
 ## 🤝 Contribuir
 
@@ -110,19 +93,13 @@ Sistema-Minimarket-wa/
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
-## 📄 Licencia
+## 👨‍💻 Equipo de Desarrollo 
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
-
-## 👨‍💻 Autor
-
-**Tu Nombre** - [@tu_usuario](https://github.com/tu_usuario)
-
-## 🙏 Agradecimientos
-
-- Inspirado en las necesidades reales de pequeños negocios
-- Desarrollado como proyecto educativo
-- Gracias a la comunidad Python por las librerías utilizadas
-
----
-⭐ Si te gusta este proyecto, ¡dale una estrella en GitHub!
+| Autor             | Cargo      |
+|-------------------|------------|
+| **Arif Khan M., Rayyan**  | **Developer**  |
+| **Campos A.,	Gianfranco**     | **Scrum Master** |
+| **Choncen G., Daniela**     | **Developer** |
+| **Perez R.,	Hugo**     | **Developer** |
+| **Rodriguez M., Rodrigo**     | **Developer** |
+| **Zumaeta C., Adriel**     | **Developer** |
