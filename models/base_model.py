@@ -4,15 +4,13 @@ import sqlite3
 from datetime import datetime
 from db.database import db
 
-class BaseModel:
-    """Clase base para todos los modelos con funciones CRUD genéricas"""
+class BaseModel: # Clase base para modelos CRUD
     
     def __init__(self, table_name, columns):
         self.table_name = table_name
         self.columns = columns
     
     def get_all(self, where_clause=None, params=None):
-        """Obtiene todos los registros de la tabla"""
         query = f"SELECT * FROM {self.table_name}"
         if where_clause:
             query += f" WHERE {where_clause}"
@@ -32,8 +30,7 @@ class BaseModel:
         # Convertir a lista de diccionarios
         return [dict(row) for row in rows]
     
-    def get_by_id(self, record_id, id_column='id'):
-        """Obtiene un registro por su ID"""
+    def obtenerRegistro(self, record_id, id_column='id'): 
         query = f"SELECT * FROM {self.table_name} WHERE {id_column} = ?"
         
         conn = db.get_connection()
@@ -46,8 +43,7 @@ class BaseModel:
         
         return dict(row) if row else None
     
-    def create(self, data):
-        """Crea un nuevo registro"""
+    def crearRegistro(self, data): 
         # Filtrar solo las columnas válidas
         valid_data = {k: v for k, v in data.items() if k in self.columns}
         
@@ -70,8 +66,7 @@ class BaseModel:
         
         return last_id
     
-    def update(self, record_id, data, id_column='id'):
-        """Actualiza un registro existente"""
+    def actualizarRegistroID(self, record_id, data, id_column='id'): 
         # Filtrar solo las columnas válidas
         valid_data = {k: v for k, v in data.items() if k in self.columns and k != id_column}
         
@@ -97,8 +92,7 @@ class BaseModel:
         
         return rows_affected > 0
     
-    def delete(self, record_id, id_column='id'):
-        """Elimina un registro"""
+    def eliminarRegistroID(self, record_id, id_column='id'):
         query = f"DELETE FROM {self.table_name} WHERE {id_column} = ?"
         
         conn = db.get_connection()
@@ -111,8 +105,7 @@ class BaseModel:
         
         return rows_affected > 0
     
-    def search(self, search_term, search_columns):
-        """Busca registros en las columnas especificadas"""
+    def buscarRegistro(self, search_term, search_columns):
         if not search_term.strip():
             return self.get_all()
         
@@ -128,8 +121,7 @@ class BaseModel:
         
         return self.get_all(where_clause, params)
     
-    def count(self, where_clause=None, params=None):
-        """Cuenta los registros en la tabla"""
+    def contarRegistro(self, where_clause=None, params=None):
         query = f"SELECT COUNT(*) FROM {self.table_name}"
         if where_clause:
             query += f" WHERE {where_clause}"
@@ -147,12 +139,10 @@ class BaseModel:
         
         return count
     
-    def exists(self, record_id, id_column='id'):
-        """Verifica si existe un registro con el ID dado"""
-        return self.count(f"{id_column} = ?", (record_id,)) > 0
+    def vericarRegistroID(self, record_id, id_column='id'):
+        return self.contarRegistro(f"{id_column} = ?", (record_id,)) > 0
     
-    def execute_custom_query(self, query, params=None):
-        """Ejecuta una consulta personalizada"""
+    def consultaPersonalizada(self, query, params=None):
         conn = db.get_connection()
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()

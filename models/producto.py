@@ -15,7 +15,6 @@ class ProductoModel(BaseModel):
         self.columnas = ["ID", "Nombre", "Categoría", "Tipo de Corte", "Precio", "Stock", "Stock Mínimo", "Imagen"]
     
     def obtener_todos(self):
-        """Obtiene todos los productos y los convierte al formato esperado por las vistas"""
         try:
             productos = self.get_all()
             # Convertir a formato pandas-like para compatibilidad
@@ -45,9 +44,8 @@ class ProductoModel(BaseModel):
             return pd.DataFrame(columns=self.columnas)
     
     def obtener_por_id(self, producto_id):
-        """Obtiene un producto por ID y lo convierte al formato esperado"""
         try:
-            producto = self.get_by_id(producto_id, 'id')
+            producto = self.obtenerRegistro(producto_id, 'id')
             if not producto:
                 return None
             
@@ -67,8 +65,7 @@ class ProductoModel(BaseModel):
             print(f"Error obteniendo producto {producto_id}: {e}")
             return None
     
-    def crear(self, datos):
-        """Crea un nuevo producto en SQLite"""
+    def creaProducto(self, datos):
         try:
             # Generar ID único
             nuevo_id = generar_id("P")
@@ -91,18 +88,17 @@ class ProductoModel(BaseModel):
             }
             
             # Crear producto usando el método base
-            self.create(producto_data)
+            self.crearRegistro(producto_data)
             return nuevo_id
             
         except Exception as e:
             print(f"Error creando producto: {e}")
             raise
     
-    def actualizar(self, producto_id, datos):
-        """Actualiza un producto existente en SQLite"""
+    def actualizarProducto(self, producto_id, datos):
         try:
             # Verificar que el producto existe
-            if not self.exists(producto_id, 'id'):
+            if not self.vericarRegistroID(producto_id, 'id'):
                 raise ValueError(f"Producto con ID {producto_id} no encontrado")
             
             # Manejar imagen si se proporciona una nueva
@@ -128,42 +124,49 @@ class ProductoModel(BaseModel):
                 update_data['imagen'] = imagen_destino
             
             # Actualizar usando el método base
-            return self.update(producto_id, update_data, 'id')
+            return self.actualizarRegistroID(producto_id, update_data, 'id')
             
         except Exception as e:
             print(f"Error actualizando producto {producto_id}: {e}")
             raise
     
-    def eliminar(self, producto_id):
-        """Elimina un producto de SQLite"""
+    def eliminarProducto(self, producto_id):
         try:
-            return self.delete(producto_id, 'id')
+            return self.eliminarRegistroID(producto_id, 'id')
         except Exception as e:
             print(f"Error eliminando producto {producto_id}: {e}")
             return False
     
-    # Copia una imagen al directorio de productos
     def _copiar_imagen(self, origen, producto_id):
         try:
             if not os.path.exists(origen):
                 return ""
+            
             extension = os.path.splitext(origen)[1]
             destino = os.path.join(IMG_DIR, f"{producto_id}{extension}")
+            
+            # Si ya existe la misma imagen, no copiar
+            if os.path.exists(destino) and os.path.samefile(origen, destino):
+                return destino
+            
+            # Si existe una imagen diferente con el mismo nombre, eliminarla primero
+            if os.path.exists(destino):
+                os.remove(destino)
+            
             shutil.copy(origen, destino)
             return destino
         except Exception as e:
             print(f"Error al copiar imagen: {e}")
             return ""
-    
-    def buscar(self, termino):
-        """Busca productos por nombre, ID o categoría usando SQLite"""
+
+    def buscarProducto(self, termino):
         try:
             if not termino.strip():
                 return self.obtener_todos()
             
             # Buscar en SQLite usando el método base
             search_columns = ['nombre', 'id', 'categoria']
-            productos = self.search(termino, search_columns)
+            productos = self.buscarRegistro(termino, search_columns)
             
             # Convertir a formato pandas-like para compatibilidad
             import pandas as pd
@@ -191,9 +194,8 @@ class ProductoModel(BaseModel):
             print(f"Error buscando productos: {e}")
             import pandas as pd
             return pd.DataFrame(columns=self.columnas)
-    
+
     def obtener_stock_bajo(self):
-        """Obtiene productos con stock bajo o crítico usando SQLite"""
         try:
             productos = self.get_all()
             productos_problematicos = []

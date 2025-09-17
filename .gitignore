@@ -19,6 +19,13 @@ venv.bak/
 *.tmp
 *.temp
 dev_server.py
+migrate_to_sqlite.py
+README_MODULAR.md
+
+# Respaldos y migraciones
+db/backup_excel/
+*.xlsx
+*.xls
 
 # Archivos vacíos de desarrollo
 **/__init__.py

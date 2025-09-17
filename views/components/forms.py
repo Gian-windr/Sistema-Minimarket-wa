@@ -3,10 +3,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from PIL import Image, ImageTk
+import os
 from config.settings import *
 from utils.helpers import *
 
-# Formulario base para productos (agregar/modificar)
 class ProductoForm(tk.Toplevel):    
     def __init__(self, parent, title="Producto", producto_data=None):
         super().__init__(parent)
@@ -46,8 +46,7 @@ class ProductoForm(tk.Toplevel):
         frame_cat = tk.Frame(self, bg="white")
         frame_cat.pack(pady=5)
         tk.Label(frame_cat, text="Categoría:", bg="white").pack(side="left")
-        self.categoria_cb = ttk.Combobox(frame_cat, textvariable=self.categoria_var, 
-                                       values=cargar_categorias(), state="readonly")
+        self.categoria_cb = ttk.Combobox(frame_cat, textvariable=self.categoria_var, values=cargar_categorias(), state="readonly")
         self.categoria_cb.pack(side="left")
         ttk.Button(frame_cat, text="Nueva...", command=self._agregar_categoria_rapido).pack(side="left", padx=5)
         
@@ -98,8 +97,29 @@ class ProductoForm(tk.Toplevel):
             self.img_label.config(text=os.path.basename(imagen_actual))
     
     def _agregar_categoria_rapido(self):
-        # Funcionalidad deshabilitada por ahora
-        messagebox.showinfo("Info", "Use las categorías existentes por ahora")
+        from tkinter import simpledialog
+        nueva_categoria = simpledialog.askstring("Nueva Categoría", 
+                                                "Ingrese el nombre de la nueva categoría:",
+                                                parent=self)
+        if nueva_categoria and nueva_categoria.strip():
+            nueva_categoria = nueva_categoria.strip()
+            try:
+                # Agregar a la base de datos
+                from db.database import db
+                db.execute_query("INSERT OR IGNORE INTO categorias (nombre, descripcion) VALUES (?, ?)", 
+                               (nueva_categoria, f"Categoría {nueva_categoria}"))
+                
+                # Recargar las categorías en el dropdown
+                categorias_actualizadas = cargar_categorias()
+                self.categoria_cb['values'] = categorias_actualizadas
+                
+                # Seleccionar la nueva categoría
+                self.categoria_var.set(nueva_categoria)
+                
+                messagebox.showinfo("Éxito", f"Categoría '{nueva_categoria}' agregada correctamente.", parent=self)
+                
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo agregar la categoría: {e}", parent=self)
     
     def _seleccionar_imagen(self):
         path = filedialog.askopenfilename(
@@ -111,14 +131,18 @@ class ProductoForm(tk.Toplevel):
     
     def _validar_datos(self):
         nombre = self.entries["Nombre"].get().strip()
-        categoria = self.categoria_var.get()
+        
+        # Obtener categoría de ambas fuentes (por si hay problemas con readonly)
+        categoria_var = self.categoria_var.get().strip()
+        categoria_widget = self.categoria_cb.get().strip()
+        categoria = categoria_var or categoria_widget
         
         if not nombre:
             messagebox.showerror("Error", "El nombre del producto es obligatorio.", parent=self)
             return None
         
         if not categoria:
-            messagebox.showerror("Error", "La categoría es obligatoria.", parent=self)
+            messagebox.showerror("Error", "Debes seleccionar una categoría del dropdown.", parent=self)
             return None
         
         # Validar campos numéricos
@@ -148,30 +172,36 @@ class ProductoForm(tk.Toplevel):
             "imagen_origen": self.img_var.get() if self.img_var.get() else None
         }
 
-    # Método para guardar los datos del producto
     def _guardar(self):
         raise NotImplementedError("Debe implementarse en la clase hija")
 
-# Botón grande con icono
 class ImagenViewer(tk.Label):
-    # Componente para mostrar imágenes    
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
         self.imagen_actual = None
     
     def mostrar_imagen(self, ruta_imagen, tamaño=(200, 200)):
         try:
+            # Limpiar imagen anterior primero
+            self.limpiar()
+            
             if ruta_imagen and os.path.exists(ruta_imagen):
                 imagen = Image.open(ruta_imagen)
                 imagen = imagen.resize(tamaño, Image.Resampling.LANCZOS)
                 self.imagen_actual = ImageTk.PhotoImage(imagen)
                 self.config(image=self.imagen_actual)
+                # Mantener una referencia para evitar garbage collection
+                self.image = self.imagen_actual
             else:
                 self.limpiar()
         except Exception as e:
-            print(f"Error al cargar imagen: {e}")
+            # Solo imprimir si es un error real, no de imagen que no existe
+            if "doesn't exist" not in str(e):
+                print(f"Error al cargar imagen: {e}")
             self.limpiar()
     
     def limpiar(self):
+        if hasattr(self, 'image'):
+            delattr(self, 'image')
         self.config(image="")
         self.imagen_actual = None

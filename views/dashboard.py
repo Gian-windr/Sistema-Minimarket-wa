@@ -10,10 +10,14 @@ class Dashboard(tk.Tk):
     def __init__(self, usuario):
         super().__init__()
         self.usuario = usuario
+        self.iconbitmap("C:/Users/LENOVO LOQ/Documents/Sistema-Minimarket-wa/db/imagenes/LOGOO.ico")
         self.title(f"{APP_NAME} - Usuario: {usuario}")
         self.geometry("1200x700")
         self.config(bg="white")
         self.center_window()
+        
+        # Configurar el cierre con X
+        self.protocol("WM_DELETE_WINDOW", self._cerrar_sesion)
         
         self.main_frame = None
         self._crear_interfaz()
@@ -30,7 +34,7 @@ class Dashboard(tk.Tk):
         header_frame = tk.Frame(self, bg=THEME_COLOR, height=80)
         header_frame.pack(fill="x")
         header_frame.pack_propagate(False)
-        
+
         # Título y usuario
         title_frame = tk.Frame(header_frame, bg=THEME_COLOR)
         title_frame.pack(expand=True, fill="both")
@@ -47,8 +51,7 @@ class Dashboard(tk.Tk):
         menu_frame.pack_propagate(False)
         
         # Título del menú
-        tk.Label(menu_frame, text="MENÚ PRINCIPAL", font=("Arial", 12, "bold"), 
-                bg="#e79052", fg="#2c3e50").pack(pady=20)
+        tk.Label(menu_frame, text="MENÚ PRINCIPAL", font=("Arial", 12, "bold"), bg="#ffffff", fg="#5ccfeb").pack(pady=20)
         
         # Botones del menú
         self._crear_menu_botones(menu_frame)
@@ -159,5 +162,4 @@ class Dashboard(tk.Tk):
     
     def _cerrar_sesion(self):
         if messagebox.askyesno("Cerrar Sesión", "¿Estás seguro que deseas cerrar la sesión?"):
-            self.destroy()  
-            self.quit()    
+            self.destroy()    

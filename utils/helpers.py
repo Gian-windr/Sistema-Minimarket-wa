@@ -2,7 +2,6 @@
 
 import tkinter as tk
 from datetime import datetime
-import pandas as pd
 from config.settings import *
 
 def generar_id(prefijo):
@@ -21,11 +20,20 @@ def boton_grande(parent, texto, color, comando, icono=""):
     
     return btn
 
-def cargar_categorias():
+def cargar_categorias(): # Carga desde la BD o devuelve categorías por defecto
     try:
-        return pd.read_excel(CATEGORIAS_FILE)["Nombre"].tolist()
-    except:
-        return ["Carnes", "Lacteos", "Bebidas", "Snacks", "Limpieza"]
+        from db.database import db
+        query = "SELECT nombre FROM categorias ORDER BY nombre"
+        result = db.execute_query(query)
+        categorias = [row[0] for row in result]
+        if categorias:
+            return categorias
+        else:
+            # Si no hay categorías en BD, devolver las por defecto
+            return ["Abarrotes", "Bebidas", "Lácteos", "Carnes", "Frutas y Verduras", "Limpieza", "Panadería"]
+    except Exception as e:
+        print(f"Error cargando categorías: {e}")
+        return ["Abarrotes", "Bebidas", "Lácteos", "Carnes", "Frutas y Verduras", "Limpieza", "Panadería"]
 
 def formatear_precio(precio):
     try:

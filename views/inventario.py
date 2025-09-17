@@ -137,7 +137,7 @@ class InventarioFrame(tk.Frame):
         
         if messagebox.askyesno("Confirmar eliminación", 
                               f"¿Seguro que deseas eliminar el producto '{nombre_producto}'?"):
-            if self.producto_model.eliminar(producto_id):
+            if self.producto_model.eliminarProducto(producto_id):
                 self.mostrar_inventario()
                 messagebox.showinfo("Producto eliminado", 
                                    f"Producto '{nombre_producto}' eliminado correctamente.")
@@ -149,15 +149,14 @@ class AgregarProductoForm(ProductoForm):
         self.parent_frame = parent
         super().__init__(parent, "Registrar Producto")
     
-    def _guardar(self):
-        """Guarda el nuevo producto"""
+    def _guardar(self): # Guarda el nuevo producto
         datos = self._validar_datos()
         if datos is None:
             return
         
         try:
             producto_model = ProductoModel()
-            nuevo_id = producto_model.crear(datos)
+            nuevo_id = producto_model.creaProducto(datos)
             messagebox.showinfo("Éxito", "Producto registrado correctamente.", parent=self)
             self.parent_frame.mostrar_inventario()
             self.destroy()
@@ -170,15 +169,14 @@ class ModificarProductoForm(ProductoForm):
         self.producto_id = producto_data["ID"]
         super().__init__(parent, "Modificar Producto", producto_data)
     
-    def _guardar(self):
-        """Guarda los cambios del producto"""
+    def _guardar(self): # Guarda los cambios en el producto existente
         datos = self._validar_datos()
         if datos is None:
             return
         
         try:
             producto_model = ProductoModel()
-            producto_model.actualizar(self.producto_id, datos)
+            producto_model.actualizarProducto(self.producto_id, datos)
             messagebox.showinfo("Éxito", "Producto modificado correctamente.", parent=self)
             self.parent_frame.mostrar_inventario()
             self.destroy()

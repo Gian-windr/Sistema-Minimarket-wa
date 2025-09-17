@@ -1,17 +1,20 @@
 import tkinter as tk
 from tkinter import messagebox
-import pandas as pd
 from config.settings import *
 from PIL import Image, ImageTk
 
 class LoginVentana(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title(f"{APP_NAME} - Login")
-        self.geometry("1024x768")
-        self.resizable(False, False)
+        self.title(f"{APP_NAME} - Iniciar Sesión")
+        self.iconbitmap("C:/Users/LENOVO LOQ/Documents/Sistema-Minimarket-wa/db/imagenes/LOGOO.ico")
+        self.geometry("1024x576")
+        self.resizable(False, True)
         self.config(bg="white")
         self.center_window()
+        
+        # Configurar el cierre con X para terminar toda la aplicación
+        self.protocol("WM_DELETE_WINDOW", self._cerrar_aplicacion)
         
         self.usuario_logueado = None
         self._crear_interfaz()
@@ -32,8 +35,8 @@ class LoginVentana(tk.Tk):
         left_frame.pack(side="left", fill="both", expand=True)
         
         try:
-            imagen_original = Image.open("C:/Users/LENOVO LOQ/Sistema-Minimarket-wa/db/imagenes/minimercado.jpg")
-            imagen_redimensionada = imagen_original.crop((0, 0, 720, 720))  # Recortar la imagen
+            imagen_original = Image.open("C:/Users/LENOVO LOQ/Documents/Sistema-Minimarket-wa/db/imagenes/minimercado.jpg")
+            imagen_redimensionada = imagen_original.crop((0, 0, 620, 576))  # ↑, ↓, ↔, ↨
             
             # Convertir para tkinter
             self.fondo_img = ImageTk.PhotoImage(imagen_redimensionada)
@@ -64,14 +67,13 @@ class LoginVentana(tk.Tk):
         
         # Cargar imagen del logo con título
         try:
-            logo_original = Image.open("C:/Users/LENOVO LOQ/Sistema-Minimarket-wa/db/imagenes/LOGOT.png")
+            logo_original = Image.open("C:/Users/LENOVO LOQ/Documents/Sistema-Minimarket-wa/db/imagenes/LOGOT.png")
             logo_redimensionado = logo_original.resize((240, 55), Image.Resampling.LANCZOS)
             # Convertir para tkinter
             self.logo_img = ImageTk.PhotoImage(logo_redimensionado)
             logo_label = tk.Label(logo_frame, image=self.logo_img, bg="white")
             logo_label.pack()
         except Exception as e:
-            print(f"Error logo: {e}")  # Ver el error en consola
             tk.Label(logo_frame, text="🏪 DON MANUELITO", 
                     font=("Arial", 18, "bold"), bg="white", fg="#4285F4").pack()
         
@@ -111,7 +113,7 @@ class LoginVentana(tk.Tk):
         # Botón de iniciar sesión
         login_btn = tk.Button(form_container, text="Iniciar sesión", 
                              command=self._login, bg="#4285F4", fg="white",
-                             font=("Arial", 12, "bold"), relief="flat", bd=0,
+                             font=("Times New Roman", 12, "bold"), relief="flat", bd=0,
                              cursor="hand2", pady=12)
         login_btn.pack(fill="x", pady=(0, 20))
         
@@ -153,7 +155,6 @@ class LoginVentana(tk.Tk):
             self.password_entry.focus()
     
     def _validar_credenciales(self, usuario, password):
-        """Valida credenciales usando SQLite"""
         try:
             from models.empleado import EmpleadoModel
             empleado_model = EmpleadoModel()
@@ -164,27 +165,22 @@ class LoginVentana(tk.Tk):
             return usuario == "admin" and password == "admin"
     
     def _abrir_dashboard(self):
-        self.withdraw()  # Ocultar ventana de login
-        
-        # Importar aquí para evitar importación circular
+        self.withdraw() 
         from views.dashboard import Dashboard
         
         dashboard = Dashboard(self.usuario_logueado)
-        dashboard.protocol("WM_DELETE_WINDOW", self._volver_al_login)
-        dashboard.mainloop()
+        self.wait_window(dashboard)
         
-        # Cuando el dashboard se cierre, mostrar login de nuevo
-        self.deiconify() 
+        # Cuando el dashboard se cierre, volver a mostrar login
+        self.deiconify()  # Mostrar login de nuevo
+        self.lift()  # Traer ventana al frente
+        self.focus_force()  # Forzar el foco
         self.usuario_entry.delete(0, tk.END)
         self.password_entry.delete(0, tk.END)
         self.usuario_entry.focus()
     
     def _volver_al_login(self):
-        # Este método se llama cuando se cierra el dashboard con la X
-        # Terminar el mainloop y cerrar aplicación completamente
-        self.quit()
-        self.destroy()
+        pass
     
     def _cerrar_aplicacion(self):
-        self.quit()
         self.destroy()

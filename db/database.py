@@ -9,12 +9,10 @@ class Database:
         self.db_path = os.path.join(DB_DIR, "minimarket.db")
         self.init_database()
     
-    def get_connection(self):
-        """Obtiene una conexión a la base de datos"""
+    def get_connection(self): # Conecta a la BD - SQLite
         return sqlite3.connect(self.db_path)
     
-    def init_database(self):
-        """Inicializa la base de datos con todas las tablas necesarias"""
+    def init_database(self): # Inicia la BD 
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -178,7 +176,7 @@ class Database:
         # Insertar configuraciones básicas
         configuraciones = [
             ('nombre_empresa', 'Minimarket Don Manuelito', 'Nombre de la empresa'),
-            ('ruc_empresa', '12345678901', 'RUC de la empresa'),
+            ('ruc_empresa', '10730291529', 'RUC de la empresa'),
             ('direccion_empresa', 'Av. Principal 123', 'Dirección de la empresa'),
             ('telefono_empresa', '123-456-789', 'Teléfono de la empresa'),
             ('moneda', 'PEN', 'Moneda utilizada'),
@@ -191,8 +189,7 @@ class Database:
                 VALUES (?, ?, ?)
             ''', (clave, valor, descripcion))
     
-    def execute_query(self, query, params=None):
-        """Ejecuta una consulta SQL"""
+    def execute_query(self, query, params=None): # Ejecuta una consulta
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -207,8 +204,7 @@ class Database:
         
         return result
     
-    def execute_insert(self, query, params=None):
-        """Ejecuta una inserción y retorna el ID del último registro insertado"""
+    def execute_insert(self, query, params=None): # Ejecuta un INSERT y retorna el ID último
         conn = self.get_connection()
         cursor = conn.cursor()
         
