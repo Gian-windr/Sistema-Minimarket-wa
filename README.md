@@ -1,6 +1,6 @@
 # 🏪 Sistema Minimarket Don Manuelito
 
-Sistema POS (Point of Sale) modular para minimarket desarrollado en Python con tkinter.
+APLICACIÓN DE GESTIÓN DE VENTAS E INVENTARIO EN MINIMARKET "Don Manuelito"
 
 ## 📋 Descripción
 
@@ -8,19 +8,19 @@ Sistema de gestión completo para minimarket que incluye manejo de inventario, v
 
 ## 🚀 Estado del Proyecto
 
-**Sprint 1 ✅ COMPLETADO** - Módulo de Inventario
+**Sprint 1 - PROCESO** - FUNCIONALIDAD MÍNIMA VIABLE
 - CRUD completo de productos
 - Manejo de imágenes
 - Sistema de categorías
-- Interfaz moderna y profesional
+- Interfaz moderna con PyQt5
 
 ## 🛠️ Tecnologías
 
 - **Python 3.x**
-- **tkinter** - Interfaz gráfica
-- **pandas** - Manejo de datos Excel
+- **PyQt5** - Interfaz gráfica moderna y profesional
+- **SQLite** - Base de datos integrada
+- **pandas** - Manejo de datos
 - **Pillow (PIL)** - Procesamiento de imágenes
-- **Excel** - Base de datos temporal
 
 ## 📦 Instalación
 
@@ -50,48 +50,45 @@ python main.py
 
 ```
 Sistema-Minimarket-wa/
-├── main.py                 # Punto de entrada
-├── requirements.txt        # Dependencias
+├── main.py                 # Punto de entrada PyQt5
+├── requirements.txt        # Dependencias con PyQt5
 ├── config/
 │   └── settings.py        # Configuraciones
 ├── models/
-│   └── producto.py        # Lógica de datos
+│   ├── base_model.py      # CRUD base SQLite
+│   ├── producto.py        # Lógica productos
+│   └── empleado.py        # Lógica empleados
 ├── views/
-│   ├── login.py           # Pantalla de login
-│   ├── dashboard.py       # Menú principal
-│   ├── inventario.py      # Módulo de inventario
+│   ├── login.py           # Login PyQt5
+│   ├── dashboard.py       # Dashboard PyQt5
+│   ├── inventario.py      # Inventario PyQt5
 │   └── components/
-│       └── forms.py       # Formularios reutilizables
+│       └── forms.py       # Formularios PyQt5
 ├── utils/
 │   └── helpers.py         # Funciones auxiliares
-├── db/                    # Archivos Excel de datos
+├── db/                    # Base de datos SQLite
 └── reportes/              # Reportes generados
 ```
 
 ## ✨ Funcionalidades
 
-### ✅ Sprint 1 - Inventario
-- [x] Login con interfaz moderna
-- [x] Dashboard principal
-- [x] Registrar productos
-- [x] Modificar productos
-- [x] Eliminar productos
-- [x] Visualizar inventario en tiempo real
-- [x] Manejo de imágenes de productos
-- [x] Sistema de categorías
+###  Sprint 1 - FUNCIONALIDAD MÍNIMA VIABLE
+| Cod. Historia     | Descripción de la Historia    | Puntos    |
+|-------------------|-------------------------------|-----------|
+| **HUO001**        | Como administrador, quiero poder registrar nuevos productos en el sistema para mantener actualizado el catálogo del minimarket.  | **5** |
+| **HUO003**        | Como administrador, quiero ver el stock actual de los productos para saber cuáles debo reabastecer.                              | **3** |
+| **HUO005**        | Como administrador, quiero crear nuevas cuentas de usuario para que el personal pueda acceder al sistema.                        | **3** |
+| **HUI001**        | Como cajero, quiero registrar una venta de productos para poder procesar la compra de un cliente de manera eficiente.            | **8** |
+| **HUI002**        | Como cajero, quiero buscar productos por nombre para poder agregarlos rápidamente a la venta.                                    | **3** |
+| **HUI005**        | Como cajero, quiero cancelar una venta en curso para corregir errores antes de completarla.                                      | **3** |  
+| **HUO002**        | Como almacenero, quiero actualizar la información de un producto (precio, stock, estado, descripción) para mantener el inventario al día | **5** |
+| **HUI003**        | Como cajero, quiero aplicar descuentos a productos o al total de la venta para poder ofrecer promociones a los clientes.         | **5** |  
 
 ### 🚧 Próximos Sprints
-- [ ] **Sprint 2**: Módulo de Ventas
-- [ ] **Sprint 3**: Módulo de Despachos  
-- [ ] **Sprint 4**: Gestión de Empleado, Reportes y Analytics
+- [ ] **Sprint 2**: FUNCIONALIDADES COMPLEMENTARIAS
+- [ ] **Sprint 3**: OPTIMIZACIÓN Y PERFORMANCE   
+- [ ] **Sprint 4**: EXPANSIÓN DE NEGOCIO
 
-## 🤝 Contribuir
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
 
 ## 👨‍💻 Equipo de Desarrollo 
 

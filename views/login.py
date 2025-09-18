@@ -1,148 +1,254 @@
-import tkinter as tk
-from tkinter import messagebox
+import sys
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
+                             QHBoxLayout, QLabel, QLineEdit, QPushButton, 
+                             QMessageBox, QFrame)
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QPixmap, QIcon, QFont
 from config.settings import *
-from PIL import Image, ImageTk
+from PIL import Image
 
-class LoginVentana(tk.Tk):
+class LoginVentana(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.title(f"{APP_NAME} - Iniciar Sesión")
-        self.iconbitmap("C:/Users/LENOVO LOQ/Documents/Sistema-Minimarket-wa/db/imagenes/LOGOO.ico")
-        self.geometry("1024x576")
-        self.resizable(False, True)
-        self.config(bg="white")
-        self.center_window()
+        self.setWindowTitle(f"{APP_NAME} - Iniciar Sesión")
+        self.setWindowIcon(QIcon("C:/Users/LENOVO LOQ/Documents/Sistema-Minimarket-wa/db/imagenes/LOGOO.ico"))
+        self.setFixedSize(1024, 576)
         
-        # Configurar el cierre con X para terminar toda la aplicación
-        self.protocol("WM_DELETE_WINDOW", self._cerrar_aplicacion)
+        # Widget central
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        
+        # Layout principal horizontal
+        main_layout = QHBoxLayout(central_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
         
         self.usuario_logueado = None
-        self._crear_interfaz()
+        self._crear_interfaz(main_layout)
+        self._centrar_ventana()
     
-    def center_window(self):
-        self.update_idletasks()
-        x = (self.winfo_screenwidth() - self.winfo_width()) // 2
-        y = (self.winfo_screenheight() - self.winfo_height()) // 2
-        self.geometry(f"+{x}+{y}")
+    def _centrar_ventana(self):
+        screen = QApplication.primaryScreen().geometry()
+        size = self.geometry()
+        x = (screen.width() - size.width()) // 2
+        y = (screen.height() - size.height()) // 2
+        self.move(x, y)
     
-    def _crear_interfaz(self):
-        # Contenedor principal con dos columnas
-        main_frame = tk.Frame(self, bg="white")
-        main_frame.pack(fill="both", expand=True)
-        
+    def _crear_interfaz(self, main_layout):
         # LADO IZQUIERDO - Imagen del minimarket
-        left_frame = tk.Frame(main_frame, bg="#f8f9fa")
-        left_frame.pack(side="left", fill="both", expand=True)
+        left_frame = QFrame()
+        left_frame.setStyleSheet("background-color: #f8f9fa;")
+        left_frame.setMinimumWidth(620)
+        
+        left_layout = QVBoxLayout(left_frame)
+        left_layout.setContentsMargins(0, 0, 0, 0)
         
         try:
+            # Cargar imagen con PIL y convertir para PyQt
             imagen_original = Image.open("C:/Users/LENOVO LOQ/Documents/Sistema-Minimarket-wa/db/imagenes/minimercado.jpg")
-            imagen_redimensionada = imagen_original.crop((0, 0, 620, 576))  # ↑, ↓, ↔, ↨
+            imagen_redimensionada = imagen_original.crop((0, 0, 620, 576))
+            imagen_redimensionada.save("temp_minimarket.jpg")
             
-            # Convertir para tkinter
-            self.fondo_img = ImageTk.PhotoImage(imagen_redimensionada)
-            fondo_label = tk.Label(left_frame, image=self.fondo_img)
-            fondo_label.pack(fill="both", expand=True)
+            imagen_label = QLabel()
+            pixmap = QPixmap("temp_minimarket.jpg")
+            imagen_label.setPixmap(pixmap)
+            imagen_label.setScaledContents(True)
+            left_layout.addWidget(imagen_label)
         except:
             # Si no hay imagen, mostrar placeholder elegante
-            placeholder_frame = tk.Frame(left_frame, bg="#e9ecef")
-            placeholder_frame.pack(fill="both", expand=True)
-            
-            tk.Label(placeholder_frame, text="🏪", font=("Arial", 120), 
-                    bg="#e9ecef", fg="#6c757d").place(relx=0.5, rely=0.5, anchor="center")
-            tk.Label(placeholder_frame, text="MINIMARKET", font=("Arial", 24, "bold"), 
-                    bg="#e9ecef", fg="#495057").place(relx=0.5, rely=0.6, anchor="center")
+            placeholder_label = QLabel("🏪\nMINIMARKET")
+            placeholder_label.setAlignment(Qt.AlignCenter)
+            placeholder_label.setStyleSheet("""
+                QLabel {
+                    background-color: #e9ecef;
+                    color: #6c757d;
+                    font-size: 60px;
+                    font-weight: bold;
+                }
+            """)
+            left_layout.addWidget(placeholder_label)
         
         # LADO DERECHO - Formulario de login
-        right_frame = tk.Frame(main_frame, bg="white", width=400)
-        right_frame.pack(side="right", fill="y", padx=0, pady=0)
-        right_frame.pack_propagate(False)
+        right_frame = QFrame()
+        right_frame.setStyleSheet("background-color: white;")
+        right_frame.setFixedWidth(400)
         
-        # Contenedor del formulario centrado
-        form_container = tk.Frame(right_frame, bg="white")
-        form_container.place(relx=0.5, rely=0.5, anchor="center")
+        # Layout del formulario
+        form_layout = QVBoxLayout(right_frame)
+        form_layout.setAlignment(Qt.AlignCenter)
+        form_layout.setContentsMargins(50, 50, 50, 50)
+        form_layout.setSpacing(20)
         
-        # Logo y título del formulario
-        logo_frame = tk.Frame(form_container, bg="white")
-        logo_frame.pack(pady=(0, 20))
-        
-        # Cargar imagen del logo con título
-        try:
-            logo_original = Image.open("C:/Users/LENOVO LOQ/Documents/Sistema-Minimarket-wa/db/imagenes/LOGOT.png")
-            logo_redimensionado = logo_original.resize((240, 55), Image.Resampling.LANCZOS)
-            # Convertir para tkinter
-            self.logo_img = ImageTk.PhotoImage(logo_redimensionado)
-            logo_label = tk.Label(logo_frame, image=self.logo_img, bg="white")
-            logo_label.pack()
-        except Exception as e:
-            tk.Label(logo_frame, text="🏪 DON MANUELITO", 
-                    font=("Arial", 18, "bold"), bg="white", fg="#4285F4").pack()
-        
-        # Subtítulo
-        tk.Label(form_container, text="Iniciar sesión", 
-                font=("Times New Roman", 24, "bold"), bg="white", fg="#1a1a1a").pack(pady=(0, 5))
-        
-        # Subtítulo secundario
-        tk.Label(form_container, text="Acceder", 
-                font=("Times New Roman", 14), bg="white", fg="#6c757d").pack(pady=(0, 30))
+        # Logo y título
+        self._crear_seccion_logo(form_layout)
         
         # Campos del formulario
-        ## Usuario
-        tk.Label(form_container, text="Nombre de usuario", 
-                font=("Times New Roman", 12), bg="white", fg="#495057").pack(anchor="w", pady=(0, 5))
+        self._crear_campos_formulario(form_layout)
         
-        user_frame = tk.Frame(form_container, bg="white")
-        user_frame.pack(fill="x", pady=(0, 20))
+        # Añadir frames al layout principal
+        main_layout.addWidget(left_frame, 3)  # 60% del espacio
+        main_layout.addWidget(right_frame, 2)  # 40% del espacio
+    
+    def _crear_seccion_logo(self, form_layout):
+        try:
+            # Cargar logo
+            logo_label = QLabel()
+            pixmap = QPixmap("C:/Users/LENOVO LOQ/Documents/Sistema-Minimarket-wa/db/imagenes/LOGOT.png")
+            scaled_pixmap = pixmap.scaled(240, 55, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            logo_label.setPixmap(scaled_pixmap)
+            logo_label.setAlignment(Qt.AlignCenter)
+            form_layout.addWidget(logo_label)
+        except:
+            logo_text = QLabel("🏪 DON MANUELITO")
+            logo_text.setAlignment(Qt.AlignCenter)
+            logo_text.setStyleSheet("""
+                QLabel {
+                    color: #4285F4;
+                    font-size: 18px;
+                    font-weight: bold;
+                }
+            """)
+            form_layout.addWidget(logo_text)
         
-        self.usuario_entry = tk.Entry(user_frame, font=("Times New Roman", 12), width=25, 
-                                      bg="#f8f9fa", fg="#495057", bd=1, relief="solid",
-                                     highlightthickness=1, highlightcolor="#4285F4")
-        self.usuario_entry.pack(fill="x", ipady=8, padx=2)
+        # Título principal
+        titulo_label = QLabel("Iniciar sesión")
+        titulo_label.setAlignment(Qt.AlignCenter)
+        titulo_label.setStyleSheet("""
+            QLabel {
+                color: #1a1a1a;
+                font-size: 24px;
+                font-weight: bold;
+                font-family: 'Times New Roman';
+            }
+        """)
+        form_layout.addWidget(titulo_label)
         
-        # Contraseña
-        tk.Label(form_container, text="Contraseña", 
-                font=("Times New Roman", 12), bg="white", fg="#495057").pack(anchor="w", pady=(0, 5))
+        # Subtítulo
+        subtitulo_label = QLabel("Acceder")
+        subtitulo_label.setAlignment(Qt.AlignCenter)
+        subtitulo_label.setStyleSheet("""
+            QLabel {
+                color: #6c757d;
+                font-size: 14px;
+                font-family: 'Times New Roman';
+                margin-bottom: 20px;
+            }
+        """)
+        form_layout.addWidget(subtitulo_label)
+    
+    def _crear_campos_formulario(self, form_layout):
+        # Campo Usuario
+        usuario_label = QLabel("Nombre de usuario")
+        usuario_label.setStyleSheet("""
+            QLabel {
+                color: #495057;
+                font-size: 12px;
+                font-family: 'Times New Roman';
+                margin-bottom: 5px;
+            }
+        """)
+        form_layout.addWidget(usuario_label)
         
-        pass_frame = tk.Frame(form_container, bg="white")
-        pass_frame.pack(fill="x", pady=(0, 30))
+        self.usuario_entry = QLineEdit()
+        self.usuario_entry.setStyleSheet("""
+            QLineEdit {
+                background-color: #f8f9fa;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 10px;
+                font-size: 12px;
+                font-family: 'Times New Roman';
+            }
+            QLineEdit:focus {
+                border: 2px solid #4285F4;
+            }
+        """)
+        self.usuario_entry.setFixedHeight(40)
+        form_layout.addWidget(self.usuario_entry)
         
-        self.password_entry = tk.Entry(pass_frame, font=("Arial", 12), width=25, show="*",
-                                      bg="#f8f9fa", fg="#495057", bd=1, relief="solid",
-                                      highlightthickness=1, highlightcolor="#4285F4")
-        self.password_entry.pack(fill="x", ipady=8, padx=2)
+        # Campo Contraseña
+        password_label = QLabel("Contraseña")
+        password_label.setStyleSheet("""
+            QLabel {
+                color: #495057;
+                font-size: 12px;
+                font-family: 'Times New Roman';
+                margin-bottom: 5px;
+            }
+        """)
+        form_layout.addWidget(password_label)
         
-        # Botón de iniciar sesión
-        login_btn = tk.Button(form_container, text="Iniciar sesión", 
-                             command=self._login, bg="#4285F4", fg="white",
-                             font=("Times New Roman", 12, "bold"), relief="flat", bd=0,
-                             cursor="hand2", pady=12)
-        login_btn.pack(fill="x", pady=(0, 20))
+        self.password_entry = QLineEdit()
+        self.password_entry.setEchoMode(QLineEdit.Password)
+        self.password_entry.setStyleSheet("""
+            QLineEdit {
+                background-color: #f8f9fa;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 10px;
+                font-size: 12px;
+            }
+            QLineEdit:focus {
+                border: 2px solid #4285F4;
+            }
+        """)
+        self.password_entry.setFixedHeight(40)
+        form_layout.addWidget(self.password_entry)
         
-        # Efectos hover para el botón
-        def on_enter(e):
-            login_btn.config(bg="#3367D6")
-        def on_leave(e):
-            login_btn.config(bg="#4285F4")
+        # Botón de login
+        login_btn = QPushButton("Iniciar sesión")
+        login_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4285F4;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 12px;
+                font-size: 12px;
+                font-weight: bold;
+                font-family: 'Times New Roman';
+            }
+            QPushButton:hover {
+                background-color: #3367D6;
+            }
+            QPushButton:pressed {
+                background-color: #2B5CE6;
+            }
+        """)
+        login_btn.setFixedHeight(45)
+        login_btn.setCursor(Qt.PointingHandCursor)
+        login_btn.clicked.connect(self._login)
+        form_layout.addWidget(login_btn)
         
-        login_btn.bind("<Enter>", on_enter)
-        login_btn.bind("<Leave>", on_leave)
+        # Link olvidé contraseña
+        forgot_label = QLabel("¿Olvidó su contraseña?")
+        forgot_label.setAlignment(Qt.AlignCenter)
+        forgot_label.setStyleSheet("""
+            QLabel {
+                color: #4285F4;
+                font-size: 10px;
+                text-decoration: underline;
+            }
+            QLabel:hover {
+                color: #3367D6;
+            }
+        """)
+        forgot_label.setCursor(Qt.PointingHandCursor)
+        form_layout.addWidget(forgot_label)
         
-        # Link de olvidé contraseña
-        forgot_link = tk.Label(form_container, text="¿Olvidó su contraseña?", 
-                              font=("Arial", 10, "underline"), bg="white", 
-                              fg="#4285F4", cursor="hand2")
-        forgot_link.pack()
+        # Conectar Enter para navegación
+        self.usuario_entry.returnPressed.connect(self.password_entry.setFocus)
+        self.password_entry.returnPressed.connect(self._login)
         
-        # Bindings para navegación
-        self.usuario_entry.bind("<Return>", lambda e: self.password_entry.focus())
-        self.password_entry.bind("<Return>", lambda e: self._login())
-        self.usuario_entry.focus()
+        # Foco inicial
+        self.usuario_entry.setFocus()
     
     def _login(self):
-        usuario = self.usuario_entry.get().strip()
-        password = self.password_entry.get().strip()
+        usuario = self.usuario_entry.text().strip()
+        password = self.password_entry.text().strip()
         
         if not usuario or not password:
-            messagebox.showerror("Error", "Por favor ingrese usuario y contraseña.")
+            QMessageBox.critical(self, "Error", "Por favor ingrese usuario y contraseña.")
             return
         
         # Validar credenciales
@@ -150,9 +256,9 @@ class LoginVentana(tk.Tk):
             self.usuario_logueado = usuario
             self._abrir_dashboard()
         else:
-            messagebox.showerror("Error", "Usuario o contraseña incorrectos.")
-            self.password_entry.delete(0, tk.END)
-            self.password_entry.focus()
+            QMessageBox.critical(self, "Error", "Usuario o contraseña incorrectos.")
+            self.password_entry.clear()
+            self.password_entry.setFocus()
     
     def _validar_credenciales(self, usuario, password):
         try:
@@ -165,22 +271,22 @@ class LoginVentana(tk.Tk):
             return usuario == "admin" and password == "admin"
     
     def _abrir_dashboard(self):
-        self.withdraw() 
+        self.hide()
         from views.dashboard import Dashboard
         
-        dashboard = Dashboard(self.usuario_logueado)
-        self.wait_window(dashboard)
+        self.dashboard = Dashboard(self.usuario_logueado)
+        self.dashboard.show()
         
-        # Cuando el dashboard se cierre, volver a mostrar login
-        self.deiconify()  # Mostrar login de nuevo
-        self.lift()  # Traer ventana al frente
-        self.focus_force()  # Forzar el foco
-        self.usuario_entry.delete(0, tk.END)
-        self.password_entry.delete(0, tk.END)
-        self.usuario_entry.focus()
+        # Conectar señal para volver al login cuando el dashboard se cierre
+        self.dashboard.finished.connect(self._volver_al_login)
     
     def _volver_al_login(self):
-        pass
+        self.show()
+        self.usuario_entry.clear()
+        self.password_entry.clear()
+        self.usuario_entry.setFocus()
     
-    def _cerrar_aplicacion(self):
-        self.destroy()
+    def closeEvent(self, event):
+        # Cerrar toda la aplicación cuando se cierre el login
+        QApplication.quit()
+        event.accept()

@@ -192,7 +192,6 @@ class Database:
     def execute_query(self, query, params=None): # Ejecuta una consulta
         conn = self.get_connection()
         cursor = conn.cursor()
-        
         if params:
             cursor.execute(query, params)
         else:

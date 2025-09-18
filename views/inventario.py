@@ -1,107 +1,198 @@
-## Vista del módulo de inventario
+## Vista del módulo de inventario - PyQt5 Version
 
-import tkinter as tk
-from tkinter import ttk, messagebox
+import os
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+                             QPushButton, QTableWidget, QTableWidgetItem, 
+                             QHeaderView, QMessageBox, QAbstractItemView)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 import pandas as pd
-from PIL import Image, ImageTk
+from PIL import Image
 from models.producto import ProductoModel
 from views.components.forms import ProductoForm, ImagenViewer
-from utils.helpers import boton_grande, formatear_precio
+from utils.helpers import formatear_precio
 from config.settings import *
 
-class InventarioFrame(tk.Frame):      
+class InventarioFrame(QWidget):      
     def __init__(self, parent):
-        super().__init__(parent, bg="white")
-        self.pack(fill="both", expand=True)
+        super().__init__(parent)
         
         self.producto_model = ProductoModel()
         self._crear_interfaz()
         self.mostrar_inventario()
     
     def _crear_interfaz(self):
-        # Título
-        tk.Label(self, text="Inventario", font=("Arial", 22, "bold"), 
-                bg="white", fg=THEME_COLOR).pack(pady=10)
+        # Layout principal
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(15)
         
-        # Configurar estilo del Treeview
-        style = ttk.Style()
-        style.configure("Treeview.Heading", font=("Arial", 12, "bold"))
-        style.configure("Treeview", font=("Arial", 11), rowheight=28)
-        style.map("Treeview", background=[("selected", "#d6eaf8")])
+        # Título
+        titulo = QLabel("Inventario")
+        titulo.setAlignment(Qt.AlignCenter)
+        titulo.setStyleSheet(f"""
+            QLabel {{
+                color: {THEME_COLOR};
+                font-size: 22px;
+                font-weight: bold;
+                font-family: Arial;
+                margin-bottom: 10px;
+            }}
+        """)
+        main_layout.addWidget(titulo)
         
         # Tabla de productos
-        columnas = ("ID", "Nombre", "Categoría", "Tipo de Corte", "Precio", "Stock", "Stock Mínimo", "Imagen")
-        self.tree = ttk.Treeview(self, columns=columnas, show="headings", selectmode="browse")
+        self.tabla = QTableWidget()
+        self.tabla.setStyleSheet("""
+            QTableWidget {
+                background-color: white;
+                border: 1px solid #ddd;
+                selection-background-color: #d6eaf8;
+                alternate-background-color: #f8f9fa;
+            }
+            QTableWidget::item {
+                padding: 8px;
+                border-bottom: 1px solid #eee;
+            }
+            QHeaderView::section {
+                background-color: #f8f9fa;
+                border: 1px solid #ddd;
+                padding: 8px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+        """)
         
-        # Configurar columnas
-        anchos = {"ID": 80, "Nombre": 180, "Categoría": 120, "Tipo de Corte": 130, 
-                 "Precio": 80, "Stock": 80, "Stock Mínimo": 100, "Imagen": 110}
+        # Configurar tabla
+        columnas = ["ID", "Nombre", "Categoría", "Tipo de Corte", "Precio", "Stock", "Stock Mínimo", "Imagen"]
+        self.tabla.setColumnCount(len(columnas))
+        self.tabla.setHorizontalHeaderLabels(columnas)
         
-        for col in columnas:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, width=anchos.get(col, 100), anchor="center")
+        # Configurar selección
+        self.tabla.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tabla.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tabla.setAlternatingRowColors(True)
         
-        self.tree.pack(fill="both", expand=True, padx=30, pady=10)
+        # Ajustar tamaños de columna
+        header = self.tabla.horizontalHeader()
+        header.setStretchLastSection(False)
+        
+        # Configurar anchos específicos
+        anchos = [80, 180, 120, 130, 80, 80, 100, 110]
+        for i, ancho in enumerate(anchos):
+            self.tabla.setColumnWidth(i, ancho)
+        
+        # Conectar señal de selección
+        self.tabla.itemSelectionChanged.connect(self._mostrar_imagen_producto)
+        
+        main_layout.addWidget(self.tabla)
         
         # Botones de acción
-        self.boton_frame = tk.Frame(self, bg="white")
-        self.boton_frame.pack(pady=10)
+        botones_layout = QHBoxLayout()
+        botones_layout.setSpacing(10)
         
-        boton_grande(self.boton_frame, "Agregar Producto", SUCCESS_COLOR, 
-                    self._agregar_producto, "➕").pack(side="left", padx=10)
-        boton_grande(self.boton_frame, "Modificar Producto", INFO_COLOR, 
-                    self._modificar_producto, "✏️").pack(side="left", padx=10)
-        boton_grande(self.boton_frame, "Eliminar Producto", ERROR_COLOR, 
-                    self._eliminar_producto, "🗑️").pack(side="left", padx=10)
-        boton_grande(self.boton_frame, "Refrescar", "#2980b9", 
-                    self.mostrar_inventario, "🔃").pack(side="left", padx=10)
+        # Crear botones
+        btn_agregar = self._crear_boton("➕ Agregar Producto", SUCCESS_COLOR, self._agregar_producto)
+        btn_modificar = self._crear_boton("✏️ Modificar Producto", INFO_COLOR, self._modificar_producto)
+        btn_eliminar = self._crear_boton("🗑️ Eliminar Producto", ERROR_COLOR, self._eliminar_producto)
+        btn_refrescar = self._crear_boton("🔃 Refrescar", "#2980b9", self.mostrar_inventario)
+        
+        botones_layout.addWidget(btn_agregar)
+        botones_layout.addWidget(btn_modificar)
+        botones_layout.addWidget(btn_eliminar)
+        botones_layout.addWidget(btn_refrescar)
+        botones_layout.addStretch()  # Espaciador
+        
+        main_layout.addLayout(botones_layout)
         
         # Visor de imagen
-        self.img_viewer = ImagenViewer(self, bg="white")
-        self.img_viewer.pack(pady=8)
+        self.img_viewer = ImagenViewer(self)
+        main_layout.addWidget(self.img_viewer)
+    
+    def _crear_boton(self, texto, color, comando):
+        btn = QPushButton(texto)
+        btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {color};
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 10px 20px;
+                font-size: 12px;
+                font-weight: bold;
+                font-family: Arial;
+            }}
+            QPushButton:hover {{
+                background-color: {self._darken_color(color)};
+            }}
+            QPushButton:pressed {{
+                background-color: {self._darken_color(color, 40)};
+            }}
+        """)
+        btn.setCursor(Qt.PointingHandCursor)
+        btn.clicked.connect(comando)
+        return btn
+    
+    def _darken_color(self, color, amount=20):
+        """Oscurecer un color hexadecimal"""
+        # Remover # si existe
+        color = color.lstrip('#')
         
-        # Bind para mostrar imagen al seleccionar
-        self.tree.bind("<<TreeviewSelect>>", self._mostrar_imagen_producto)
+        # Convertir a RGB
+        r = int(color[0:2], 16)
+        g = int(color[2:4], 16)
+        b = int(color[4:6], 16)
+        
+        # Oscurecer
+        r = max(0, r - amount)
+        g = max(0, g - amount)
+        b = max(0, b - amount)
+        
+        return f"#{r:02x}{g:02x}{b:02x}"
     
     def mostrar_inventario(self):
         # Limpiar tabla
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+        self.tabla.setRowCount(0)
         
         # Obtener productos
         df = self.producto_model.obtener_todos()
         
+        # Configurar número de filas
+        self.tabla.setRowCount(len(df))
+        
         # Llenar tabla
-        for _, row in df.iterrows():
+        for row_idx, (_, row) in enumerate(df.iterrows()):
             precio = formatear_precio(row.get("Precio", 0))
             stock_actual = int(row["Stock"]) if pd.notna(row["Stock"]) else 0
             stock_minimo = int(row["Stock Mínimo"]) if pd.notna(row["Stock Mínimo"]) else 0
             
-            values = (
-                row["ID"], 
-                row["Nombre"], 
-                row["Categoría"], 
-                row.get("Tipo de Corte", ""),
+            values = [
+                str(row["ID"]), 
+                str(row["Nombre"]), 
+                str(row["Categoría"]), 
+                str(row.get("Tipo de Corte", "")),
                 precio, 
-                stock_actual, 
-                stock_minimo,
-                os.path.basename(row["Imagen"]) if pd.notna(row["Imagen"]) and str(row["Imagen"]).strip() else ""
-            )
+                str(stock_actual), 
+                str(stock_minimo),
+                os.path.basename(str(row["Imagen"])) if pd.notna(row["Imagen"]) and str(row["Imagen"]).strip() else ""
+            ]
             
-            self.tree.insert("", "end", values=values)
+            for col_idx, value in enumerate(values):
+                item = QTableWidgetItem(str(value))
+                item.setTextAlignment(Qt.AlignCenter)
+                self.tabla.setItem(row_idx, col_idx, item)
         
         # Limpiar visor de imagen
         self.img_viewer.limpiar()
     
-    def _mostrar_imagen_producto(self, event):
-        selection = self.tree.selection()
-        if not selection:
+    def _mostrar_imagen_producto(self):
+        current_row = self.tabla.currentRow()
+        if current_row < 0:
             return
         
-        item = self.tree.item(selection[0])
-        values = item["values"]
-        if len(values) > 0:
-            producto_id = values[0]
+        producto_id_item = self.tabla.item(current_row, 0)  # Primera columna es ID
+        if producto_id_item:
+            producto_id = producto_id_item.text()
             producto = self.producto_model.obtener_por_id(producto_id)
             
             if producto is not None and not producto.empty:
@@ -112,44 +203,49 @@ class InventarioFrame(tk.Frame):
         AgregarProductoForm(self)
     
     def _modificar_producto(self):
-        selection = self.tree.selection()
-        if not selection:
-            messagebox.showwarning("Modificar producto", "Selecciona un producto para modificar.")
+        current_row = self.tabla.currentRow()
+        if current_row < 0:
+            QMessageBox.warning(self, "Modificar producto", "Selecciona un producto para modificar.")
             return
         
-        item = self.tree.item(selection[0])
-        producto_id = item["values"][0]
+        producto_id_item = self.tabla.item(current_row, 0)
+        producto_id = producto_id_item.text()
         producto_data = self.producto_model.obtener_por_id(producto_id)
         
         if producto_data is not None and not producto_data.empty:
             ModificarProductoForm(self, producto_data)
     
     def _eliminar_producto(self):
-        selection = self.tree.selection()
-        if not selection:
-            messagebox.showwarning("Eliminar producto", "Selecciona un producto para eliminar.")
+        current_row = self.tabla.currentRow()
+        if current_row < 0:
+            QMessageBox.warning(self, "Eliminar producto", "Selecciona un producto para eliminar.")
             return
         
-        item = self.tree.item(selection[0])
-        values = item["values"]
-        producto_id = values[0]
-        nombre_producto = values[1]
+        producto_id_item = self.tabla.item(current_row, 0)
+        nombre_item = self.tabla.item(current_row, 1)
         
-        if messagebox.askyesno("Confirmar eliminación", 
-                              f"¿Seguro que deseas eliminar el producto '{nombre_producto}'?"):
+        producto_id = producto_id_item.text()
+        nombre_producto = nombre_item.text()
+        
+        reply = QMessageBox.question(self, "Confirmar eliminación", 
+                                   f"¿Seguro que deseas eliminar el producto '{nombre_producto}'?",
+                                   QMessageBox.Yes | QMessageBox.No, 
+                                   QMessageBox.No)
+        
+        if reply == QMessageBox.Yes:
             if self.producto_model.eliminarProducto(producto_id):
                 self.mostrar_inventario()
-                messagebox.showinfo("Producto eliminado", 
-                                   f"Producto '{nombre_producto}' eliminado correctamente.")
+                QMessageBox.information(self, "Producto eliminado", 
+                                       f"Producto '{nombre_producto}' eliminado correctamente.")
             else:
-                messagebox.showerror("Error", "No se pudo eliminar el producto.")
+                QMessageBox.critical(self, "Error", "No se pudo eliminar el producto.")
 
 class AgregarProductoForm(ProductoForm):    
     def __init__(self, parent):
         self.parent_frame = parent
         super().__init__(parent, "Registrar Producto")
     
-    def _guardar(self): # Guarda el nuevo producto
+    def _guardar(self):
         datos = self._validar_datos()
         if datos is None:
             return
@@ -157,11 +253,11 @@ class AgregarProductoForm(ProductoForm):
         try:
             producto_model = ProductoModel()
             nuevo_id = producto_model.creaProducto(datos)
-            messagebox.showinfo("Éxito", "Producto registrado correctamente.", parent=self)
+            QMessageBox.information(self, "Éxito", "Producto registrado correctamente.")
             self.parent_frame.mostrar_inventario()
-            self.destroy()
+            self.close()
         except Exception as e:
-            messagebox.showerror("Error al guardar", f"Error: {e}", parent=self)
+            QMessageBox.critical(self, "Error al guardar", f"Error: {e}")
 
 class ModificarProductoForm(ProductoForm):
     def __init__(self, parent, producto_data):
@@ -169,7 +265,7 @@ class ModificarProductoForm(ProductoForm):
         self.producto_id = producto_data["ID"]
         super().__init__(parent, "Modificar Producto", producto_data)
     
-    def _guardar(self): # Guarda los cambios en el producto existente
+    def _guardar(self):
         datos = self._validar_datos()
         if datos is None:
             return
@@ -177,8 +273,8 @@ class ModificarProductoForm(ProductoForm):
         try:
             producto_model = ProductoModel()
             producto_model.actualizarProducto(self.producto_id, datos)
-            messagebox.showinfo("Éxito", "Producto modificado correctamente.", parent=self)
+            QMessageBox.information(self, "Éxito", "Producto modificado correctamente.")
             self.parent_frame.mostrar_inventario()
-            self.destroy()
+            self.close()
         except Exception as e:
-            messagebox.showerror("Error al guardar", f"Error: {e}", parent=self)
+            QMessageBox.critical(self, "Error al guardar", f"Error: {e}")
