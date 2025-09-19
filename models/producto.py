@@ -1,4 +1,5 @@
 # Modelo para manejar los datos de productos - Migrado a SQLite
+# Sistema de IDs P0001 con reutilización automática implementado
 
 import os
 import shutil
