@@ -178,7 +178,7 @@ class Dashboard(QMainWindow):
             self.main_content.addWidget(ventas)
             self.main_content.setCurrentWidget(ventas)
         except Exception as e:
-            self._mostrar_error("💰 Ventas", "Implementando módulo...")
+            self._mostrar_error("💰 Ventas", f"Error al cargar módulo: {str(e)}")
     
     def mostrar_reportes(self):
         self._limpiar_contenido()
