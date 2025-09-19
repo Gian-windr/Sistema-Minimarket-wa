@@ -9,7 +9,7 @@ class EmpleadoModel(BaseModel):
         columns = ['id', 'nombre', 'apellido', 'usuario', 'contraseña', 'rol', 'activo']
         super().__init__('empleados', columns)
     
-    def validar_credenciales(self, usuario, password):
+    def validarCredenciales(self, usuario, password):
         try:
             empleados = self.get_all(
                 "usuario = ? AND contraseña = ? AND activo = 1",
@@ -21,7 +21,11 @@ class EmpleadoModel(BaseModel):
             # Credenciales por defecto si hay error
             return usuario == "admin" and password == "admin"
     
-    def obtener_por_usuario(self, usuario):
+    def validar_credenciales(self, usuario, password):
+        """Alias para compatibilidad con el sistema de login"""
+        return self.validarCredenciales(usuario, password)
+    
+    def obtenerUsuario(self, usuario):
         try:
             empleados = self.get_all("usuario = ? AND activo = 1", (usuario,))
             return empleados[0] if empleados else None
@@ -32,7 +36,7 @@ class EmpleadoModel(BaseModel):
     def crear_empleado(self, nombre, apellido, usuario, contraseña, rol='empleado'):
         try:
             # Verificar que el usuario no exista
-            if self.obtener_por_usuario(usuario):
+            if self.obtenerUsuario(usuario):
                 raise ValueError(f"El usuario '{usuario}' ya existe")
             
             empleado_data = {
@@ -49,21 +53,21 @@ class EmpleadoModel(BaseModel):
             print(f"Error creando empleado: {e}")
             raise
     
-    def actualizar_empleado(self, empleado_id, datos):
+    def actualizarEmpleado(self, empleado_id, datos):
         try:
             return self.actualizarRegistroID(empleado_id, datos)
         except Exception as e:
             print(f"Error actualizando empleado: {e}")
             raise
     
-    def desactivar_empleado(self, empleado_id):
+    def desactivarEmpleado(self, empleado_id):
         try:
             return self.actualizarRegistroID(empleado_id, {'activo': 0})
         except Exception as e:
             print(f"Error desactivando empleado: {e}")
             return False
     
-    def obtener_empleados_activos(self):
+    def obtenerEmpleadosActivos(self):
         try:
             return self.get_all("activo = 1")
         except Exception as e:

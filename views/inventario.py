@@ -18,10 +18,10 @@ class InventarioFrame(QWidget):
         super().__init__(parent)
         
         self.producto_model = ProductoModel()
-        self._crear_interfaz()
-        self.mostrar_inventario()
+        self.crearInterfaz()
+        self.mostrarInventario()
     
-    def _crear_interfaz(self):
+    def crearInterfaz(self):
         # Layout principal
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -41,18 +41,29 @@ class InventarioFrame(QWidget):
         """)
         main_layout.addWidget(titulo)
         
-        # Tabla de productos
-        self.tabla = QTableWidget()
+        # Tabla de productos - USAR TABLA PERSONALIZADA NO EDITABLE
+        self.tabla = TablaNoEditable()
         self.tabla.setStyleSheet("""
             QTableWidget {
                 background-color: white;
                 border: 1px solid #ddd;
-                selection-background-color: #d6eaf8;
+                selection-background-color: #3498db;
+                selection-color: white;
                 alternate-background-color: #f8f9fa;
+                gridline-color: #e0e0e0;
+                font-size: 12px;
             }
             QTableWidget::item {
                 padding: 8px;
                 border-bottom: 1px solid #eee;
+            }
+            QTableWidget::item:selected {
+                background-color: #3498db;
+                color: white;
+                font-weight: bold;
+            }
+            QTableWidget::item:hover {
+                background-color: #e3f2fd;
             }
             QHeaderView::section {
                 background-color: #f8f9fa;
@@ -72,6 +83,7 @@ class InventarioFrame(QWidget):
         self.tabla.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tabla.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tabla.setAlternatingRowColors(True)
+        self.tabla.setFocusPolicy(Qt.NoFocus)
         
         # Ajustar tamaños de columna
         header = self.tabla.horizontalHeader()
@@ -82,8 +94,15 @@ class InventarioFrame(QWidget):
         for i, ancho in enumerate(anchos):
             self.tabla.setColumnWidth(i, ancho)
         
-        # Conectar señal de selección
-        self.tabla.itemSelectionChanged.connect(self._mostrar_imagen_producto)
+        # Conectar MÚLTIPLES señales de selección para garantizar funcionamiento
+        self.tabla.itemSelectionChanged.connect(self.mostrarImagen)
+        self.tabla.currentItemChanged.connect(self.detectarCambioSeleccion)
+        self.tabla.itemClicked.connect(self.detectarSeleccion)
+        
+        # PROTECCIÓN FINAL: Sobrescribir método de edición
+        def no_edit(item):
+            return False
+        self.tabla.openPersistentEditor = no_edit
         
         main_layout.addWidget(self.tabla)
         
@@ -92,10 +111,11 @@ class InventarioFrame(QWidget):
         botones_layout.setSpacing(10)
         
         # Crear botones
-        btn_agregar = self._crear_boton("➕ Agregar Producto", SUCCESS_COLOR, self._agregar_producto)
-        btn_modificar = self._crear_boton("✏️ Modificar Producto", INFO_COLOR, self._modificar_producto)
-        btn_eliminar = self._crear_boton("🗑️ Eliminar Producto", ERROR_COLOR, self._eliminar_producto)
-        btn_refrescar = self._crear_boton("🔃 Refrescar", "#2980b9", self.mostrar_inventario)
+        btn_agregar = self.crearBoton("➕ Agregar Producto", SUCCESS_COLOR, self.agregarProducto
+)
+        btn_modificar = self.crearBoton("✏️ Modificar Producto", INFO_COLOR, self.modificarProducto)
+        btn_eliminar = self.crearBoton("🗑️ Eliminar Producto", ERROR_COLOR, self.eliminarProducto)
+        btn_refrescar = self.crearBoton("🔃 Refrescar", "#2980b9", self.mostrarInventario)
         
         botones_layout.addWidget(btn_agregar)
         botones_layout.addWidget(btn_modificar)
@@ -109,7 +129,7 @@ class InventarioFrame(QWidget):
         self.img_viewer = ImagenViewer(self)
         main_layout.addWidget(self.img_viewer)
     
-    def _crear_boton(self, texto, color, comando):
+    def crearBoton(self, texto, color, comando):
         btn = QPushButton(texto)
         btn.setStyleSheet(f"""
             QPushButton {{
@@ -150,7 +170,7 @@ class InventarioFrame(QWidget):
         
         return f"#{r:02x}{g:02x}{b:02x}"
     
-    def mostrar_inventario(self):
+    def mostrarInventario(self):
         # Limpiar tabla
         self.tabla.setRowCount(0)
         
@@ -180,42 +200,110 @@ class InventarioFrame(QWidget):
             for col_idx, value in enumerate(values):
                 item = QTableWidgetItem(str(value))
                 item.setTextAlignment(Qt.AlignCenter)
+                # IMPORTANTE: Permitir selección completa
+                item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemNeverHasChildren)
                 self.tabla.setItem(row_idx, col_idx, item)
         
         # Limpiar visor de imagen
         self.img_viewer.limpiar()
     
-    def _mostrar_imagen_producto(self):
-        current_row = self.tabla.currentRow()
-        if current_row < 0:
-            return
-        
-        producto_id_item = self.tabla.item(current_row, 0)  # Primera columna es ID
-        if producto_id_item:
-            producto_id = producto_id_item.text()
-            producto = self.producto_model.obtener_por_id(producto_id)
+    def mostrarImagen(self):
+        try:
+            current_row = self.tabla.currentRow()
+            print(f"🔍 Fila seleccionada: {current_row}")
             
-            if producto is not None and not producto.empty:
-                imagen_path = producto.get("Imagen", "")
-                self.img_viewer.mostrar_imagen(imagen_path)
+            if current_row < 0:
+                print("❌ No hay fila seleccionada")
+                return
+            
+            producto_id_item = self.tabla.item(current_row, 0)  # Primera columna es ID
+            if producto_id_item:
+                producto_id = producto_id_item.text()
+                print(f"📦 ID del producto: {producto_id}")
+                
+                if producto_id:
+                    producto = self.producto_model.obtener_por_id(producto_id)
+                    print(f"📋 Producto obtenido: {type(producto)}")
+                    
+                    if producto is not None and not producto.empty:
+                        imagen_path = producto.get("Imagen", "")
+                        print(f"🖼️ Ruta de imagen: {imagen_path}")
+                        
+                        if imagen_path and os.path.exists(imagen_path):
+                            print("✅ Mostrando imagen")
+                            self.img_viewer.mostrar_imagen(imagen_path)
+                        else:
+                            print("⚠️ Imagen no encontrada, limpiando visor")
+                            self.img_viewer.limpiar()
+                    else:
+                        print("❌ Producto vacío o None")
+                        self.img_viewer.limpiar()
+                else:
+                    print("❌ ID vacío")
+                    self.img_viewer.limpiar()
+            else:
+                print("❌ No se pudo obtener el item de ID")
+                self.img_viewer.limpiar()
+        except Exception as e:
+            print(f"💥 Error al mostrar imagen: {e}")
+            import traceback
+            traceback.print_exc()
+            self.img_viewer.limpiar()
     
-    def _agregar_producto(self):
-        AgregarProductoForm(self)
+    def detectarCambioSeleccion(self, current, previous):
+        print(f"🔄 Item actual cambió: {current}")
+        self.mostrarImagen()
     
-    def _modificar_producto(self):
+    def detectarSeleccion(self, item):
+        print(f"👆 Item clickeado: {item}")
+        self.mostrarImagen()
+    
+    def agregarProducto(self):
+        try:
+            print("🔄 Abriendo formulario agregar producto...")
+            dialog = AgregarProductoForm(self)
+            print("✅ Formulario creado, mostrando...")
+            result = dialog.exec_()  # Usar exec_() en lugar de show() para modal
+            print(f"📋 Formulario cerrado con resultado: {result}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al abrir formulario: {e}")
+            print(f"❌ Error en agregar producto: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def modificarProducto(self):
         current_row = self.tabla.currentRow()
         if current_row < 0:
             QMessageBox.warning(self, "Modificar producto", "Selecciona un producto para modificar.")
             return
         
-        producto_id_item = self.tabla.item(current_row, 0)
-        producto_id = producto_id_item.text()
-        producto_data = self.producto_model.obtener_por_id(producto_id)
-        
-        if producto_data is not None and not producto_data.empty:
-            ModificarProductoForm(self, producto_data)
+        try:
+            print(f"🔄 Modificando producto en fila: {current_row}")
+            producto_id_item = self.tabla.item(current_row, 0)
+            if not producto_id_item:
+                QMessageBox.warning(self, "Error", "No se pudo obtener el ID del producto.")
+                return
+                
+            producto_id = producto_id_item.text()
+            print(f"📋 ID del producto: {producto_id}")
+            
+            producto_data = self.producto_model.obtener_por_id(producto_id)
+            print(f"📦 Datos del producto: {type(producto_data)}")
+            
+            if producto_data is not None and not producto_data.empty:
+                print("✅ Creando formulario de modificación...")
+                dialog = ModificarProductoForm(self, producto_data)
+                result = dialog.exec_()  # Usar exec_() en lugar de show() para modal
+                print(f"📋 Formulario cerrado con resultado: {result}")
+            else:
+                QMessageBox.warning(self, "Error", "No se encontró el producto seleccionado.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al abrir formulario: {e}")
+            print(f"❌ Error en modificar producto: {e}")
+            import traceback
+            traceback.print_exc()
     
-    def _eliminar_producto(self):
+    def eliminarProducto(self):
         current_row = self.tabla.currentRow()
         if current_row < 0:
             QMessageBox.warning(self, "Eliminar producto", "Selecciona un producto para eliminar.")
@@ -234,7 +322,7 @@ class InventarioFrame(QWidget):
         
         if reply == QMessageBox.Yes:
             if self.producto_model.eliminarProducto(producto_id):
-                self.mostrar_inventario()
+                self.mostrarInventario()
                 QMessageBox.information(self, "Producto eliminado", 
                                        f"Producto '{nombre_producto}' eliminado correctamente.")
             else:
@@ -245,7 +333,7 @@ class AgregarProductoForm(ProductoForm):
         self.parent_frame = parent
         super().__init__(parent, "Registrar Producto")
     
-    def _guardar(self):
+    def guardar(self):
         datos = self._validar_datos()
         if datos is None:
             return
@@ -254,7 +342,7 @@ class AgregarProductoForm(ProductoForm):
             producto_model = ProductoModel()
             nuevo_id = producto_model.creaProducto(datos)
             QMessageBox.information(self, "Éxito", "Producto registrado correctamente.")
-            self.parent_frame.mostrar_inventario()
+            self.parent_frame.mostrarInventario()
             self.close()
         except Exception as e:
             QMessageBox.critical(self, "Error al guardar", f"Error: {e}")
@@ -262,10 +350,17 @@ class AgregarProductoForm(ProductoForm):
 class ModificarProductoForm(ProductoForm):
     def __init__(self, parent, producto_data):
         self.parent_frame = parent
-        self.producto_id = producto_data["ID"]
+        # Acceder al ID correctamente según el tipo de dato
+        if hasattr(producto_data, 'get'):
+            self.producto_id = producto_data.get("ID")
+        elif hasattr(producto_data, '__getitem__'):
+            self.producto_id = producto_data["ID"]
+        else:
+            self.producto_id = str(producto_data.ID) if hasattr(producto_data, 'ID') else None
+            
         super().__init__(parent, "Modificar Producto", producto_data)
     
-    def _guardar(self):
+    def guardar(self):
         datos = self._validar_datos()
         if datos is None:
             return
@@ -274,7 +369,26 @@ class ModificarProductoForm(ProductoForm):
             producto_model = ProductoModel()
             producto_model.actualizarProducto(self.producto_id, datos)
             QMessageBox.information(self, "Éxito", "Producto modificado correctamente.")
-            self.parent_frame.mostrar_inventario()
+            self.parent_frame.mostrarInventario()
             self.close()
         except Exception as e:
             QMessageBox.critical(self, "Error al guardar", f"Error: {e}")
+            print(f"Error detallado en modificar: {e}")
+
+# Tabla personalizada que NUNCA permite edición pero SÍ selección
+class TablaNoEditable(QTableWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # Configurar como no editable pero seleccionable
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # IMPORTANTE: Permitir focus para selección pero no edición
+        self.setFocusPolicy(Qt.StrongFocus)
+    
+    def edit(self, index, trigger, event):
+        # NUNCA permitir edición - sobrescribir método edit
+        return False
+    
+    def mouseDoubleClickEvent(self, event):
+        # Permitir selección en doble click pero no edición
+        # Llamar al método padre para selección, pero sin edición
+        super(QTableWidget, self).mouseDoubleClickEvent(event)

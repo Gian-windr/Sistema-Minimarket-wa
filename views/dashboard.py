@@ -1,23 +1,27 @@
-## Dashboard principal del sistema - PyQt5 Version
+## Dashboard principal - PyQt5 Optimizado
 
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-                             QLabel, QPushButton, QFrame, QMessageBox, QStackedWidget)
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QFont
+                             QLabel, QPushButton, QFrame, QStackedWidget)
+from PyQt5.QtCore import Qt
 from config.settings import *
 
 class Dashboard(QMainWindow):
-    # Señal personalizada para cuando se cierra el dashboard
-    finished = pyqtSignal()
-    
     def __init__(self, usuario):
         super().__init__()
         self.usuario = usuario
-        self.setWindowIcon(QIcon("C:/Users/LENOVO LOQ/Documents/Sistema-Minimarket-wa/db/imagenes/LOGOO.ico"))
-        self.setWindowTitle(f"{APP_NAME} - Usuario: {usuario}")
+        self.setWindowTitle(f"{APP_NAME} - {usuario}")
         self.setGeometry(100, 100, 1200, 700)
         
-        # Widget central
+        self._crear_interfaz()
+        self._centrar_ventana()
+    
+    def _centrar_ventana(self):
+        from PyQt5.QtWidgets import QApplication
+        screen = QApplication.primaryScreen().geometry()
+        size = self.geometry()
+        self.move((screen.width() - size.width()) // 2, (screen.height() - size.height()) // 2)
+    
+    def _crear_interfaz(self):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
@@ -26,94 +30,68 @@ class Dashboard(QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
-        self.main_content = None
-        self._crear_interfaz(main_layout)
-        self._centrar_ventana()
-    
-    def _centrar_ventana(self):
-        from PyQt5.QtWidgets import QApplication
-        screen = QApplication.primaryScreen().geometry()
-        size = self.geometry()
-        x = (screen.width() - size.width()) // 2
-        y = (screen.height() - size.height()) // 2
-        self.move(x, y)
-    
-    def _crear_interfaz(self, main_layout):
-        # Barra superior
-        header_frame = QFrame()
-        header_frame.setStyleSheet(f"background-color: {THEME_COLOR}; color: white;")
-        header_frame.setFixedHeight(80)
+        # Header
+        header = self._crear_header()
+        main_layout.addWidget(header)
         
-        header_layout = QHBoxLayout(header_frame)
-        header_layout.setContentsMargins(20, 20, 20, 20)
-        
-        # Título de la aplicación
-        titulo_label = QLabel(f"🏪 {APP_NAME}")
-        titulo_label.setStyleSheet("""
-            QLabel {
-                color: white;
-                font-size: 20px;
-                font-weight: bold;
-                font-family: Arial;
-            }
-        """)
-        header_layout.addWidget(titulo_label)
-        
-        # Spacer
-        header_layout.addStretch()
-        
-        # Usuario logueado
-        usuario_label = QLabel(f"👤 {self.usuario}")
-        usuario_label.setStyleSheet("""
-            QLabel {
-                color: white;
-                font-size: 12px;
-                font-family: Arial;
-            }
-        """)
-        header_layout.addWidget(usuario_label)
-        
-        # Contenido principal horizontal
+        # Contenido
         content_layout = QHBoxLayout()
         content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(0)
         
         # Menú lateral
-        menu_frame = self._crear_menu_lateral()
-        content_layout.addWidget(menu_frame)
+        menu = self._crear_menu()
+        content_layout.addWidget(menu)
         
-        # Área de contenido principal
+        # Área principal
         self.main_content = QStackedWidget()
         self.main_content.setStyleSheet("background-color: white;")
-        content_layout.addWidget(self.main_content, 1)  # Expandir para llenar el espacio
+        content_layout.addWidget(self.main_content, 1)
         
-        # Añadir layouts al layout principal
-        main_layout.addWidget(header_frame)
         content_widget = QWidget()
         content_widget.setLayout(content_layout)
-        main_layout.addWidget(content_widget, 1)  # Expandir
+        main_layout.addWidget(content_widget, 1)
         
-        # Mostrar página por defecto
-        self._mostrar_pagina_bienvenida()
+        self._mostrar_bienvenida()
     
-    def _crear_menu_lateral(self):
-        menu_frame = QFrame()
-        menu_frame.setStyleSheet("background-color: #b9c2c4;")
-        menu_frame.setFixedWidth(200)
+    def _crear_header(self):
+        header = QFrame()
+        header.setStyleSheet(f"background-color: {THEME_COLOR}; color: white;")
+        header.setFixedHeight(60)
         
-        menu_layout = QVBoxLayout(menu_frame)
-        menu_layout.setContentsMargins(10, 10, 10, 10)
-        menu_layout.setSpacing(2)
+        layout = QHBoxLayout(header)
+        layout.setContentsMargins(20, 10, 20, 10)
         
-        # Botones del menú
+        # Título
+        titulo = QLabel(f"🏪 {APP_NAME}")
+        titulo.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+        layout.addWidget(titulo)
+        
+        layout.addStretch()
+        
+        # Usuario
+        usuario = QLabel(f"👤 {self.usuario}")
+        usuario.setStyleSheet("color: white; font-size: 12px;")
+        layout.addWidget(usuario)
+        
+        return header
+    
+    def _crear_menu(self):
+        menu = QFrame()
+        menu.setStyleSheet("background-color: #b9c2c4;")
+        menu.setFixedWidth(180)
+        
+        layout = QVBoxLayout(menu)
+        layout.setContentsMargins(10, 10, 10, 10)
+        
+        # Botones principales
         botones = [
             ("📦 Inventario", self.mostrar_inventario),
             ("💰 Ventas", self.mostrar_ventas),
-            ("📋 Despachos", self.mostrar_despachos),
-            ("👥 Empleados", self.mostrar_empleados),
             ("📊 Reportes", self.mostrar_reportes),
+            ("👥 Empleados", self.mostrar_empleados),
             ("🛒 Compras", self.mostrar_compras),
-            ("📁 Categorías", self.mostrar_categorias),
+            ("🚛 Despachos", self.mostrar_despachos),
+            ("⚙️ Configuración", self.mostrar_configuracion)
         ]
         
         for texto, comando in botones:
@@ -127,193 +105,127 @@ class Dashboard(QMainWindow):
                     text-align: left;
                     font-size: 11px;
                     font-weight: bold;
-                    font-family: Arial;
                 }}
                 QPushButton:hover {{
                     background-color: #9ba5a7;
                 }}
-                QPushButton:pressed {{
-                    background-color: #8a9497;
-                }}
             """)
             btn.setCursor(Qt.PointingHandCursor)
             btn.clicked.connect(comando)
-            menu_layout.addWidget(btn)
+            layout.addWidget(btn)
         
-        # Separador
-        separador = QFrame()
-        separador.setFrameShape(QFrame.HLine)
-        separador.setStyleSheet("background-color: #5ccfeb; max-height: 2px; margin: 20px 0px;")
-        menu_layout.addWidget(separador)
+        layout.addStretch()
         
-        # Botón de cerrar sesión
-        btn_logout = QPushButton("❌ Cerrar Sesión")
-        btn_logout.setStyleSheet(f"""
+        # Botón salir
+        btn_salir = QPushButton("❌ Salir")
+        btn_salir.setStyleSheet(f"""
             QPushButton {{
                 background-color: {ERROR_COLOR};
                 color: white;
                 border: none;
-                padding: 12px;
-                text-align: left;
-                font-size: 11px;
+                padding: 10px;
                 font-weight: bold;
-                font-family: Arial;
             }}
             QPushButton:hover {{
                 background-color: #c0392b;
             }}
-            QPushButton:pressed {{
-                background-color: #a93226;
-            }}
         """)
-        btn_logout.setCursor(Qt.PointingHandCursor)
-        btn_logout.clicked.connect(self._cerrar_sesion)
-        menu_layout.addWidget(btn_logout)
+        btn_salir.clicked.connect(self.close)
+        layout.addWidget(btn_salir)
         
-        # Spacer para empujar el botón de logout hacia abajo
-        menu_layout.addStretch()
-        
-        return menu_frame
+        return menu
     
-    def _mostrar_pagina_bienvenida(self):
-        bienvenida_widget = QWidget()
-        bienvenida_layout = QVBoxLayout(bienvenida_widget)
-        bienvenida_layout.setAlignment(Qt.AlignCenter)
+    def _mostrar_bienvenida(self):
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.setAlignment(Qt.AlignCenter)
         
         titulo = QLabel("🏪 Bienvenido al Sistema")
         titulo.setAlignment(Qt.AlignCenter)
-        titulo.setStyleSheet("""
-            QLabel {
-                font-size: 28px;
-                font-weight: bold;
-                color: #2c3e50;
-                margin-bottom: 20px;
-            }
-        """)
+        titulo.setStyleSheet("font-size: 24px; font-weight: bold; color: #2c3e50; margin: 20px;")
         
-        subtitulo = QLabel("Selecciona un módulo del menú lateral para comenzar")
+        subtitulo = QLabel("Selecciona un módulo del menú para comenzar")
         subtitulo.setAlignment(Qt.AlignCenter)
-        subtitulo.setStyleSheet("""
-            QLabel {
-                font-size: 16px;
-                color: #7f8c8d;
-            }
-        """)
+        subtitulo.setStyleSheet("font-size: 14px; color: #7f8c8d;")
         
-        bienvenida_layout.addWidget(titulo)
-        bienvenida_layout.addWidget(subtitulo)
+        layout.addWidget(titulo)
+        layout.addWidget(subtitulo)
         
-        self.main_content.addWidget(bienvenida_widget)
-        self.main_content.setCurrentWidget(bienvenida_widget)
+        self.main_content.addWidget(widget)
+        self.main_content.setCurrentWidget(widget)
     
-    def limpiar_main(self):
-        # Limpiar el contenido principal
+    def _limpiar_contenido(self):
         while self.main_content.count():
             child = self.main_content.widget(0)
             self.main_content.removeWidget(child)
             child.setParent(None)
     
     def mostrar_inventario(self):
-        self.limpiar_main()
+        self._limpiar_contenido()
         try:
             from views.inventario import InventarioFrame
-            inventario_widget = InventarioFrame(self)
-            self.main_content.addWidget(inventario_widget)
-            self.main_content.setCurrentWidget(inventario_widget)
+            inventario = InventarioFrame(self)
+            self.main_content.addWidget(inventario)
+            self.main_content.setCurrentWidget(inventario)
         except Exception as e:
-            self._mostrar_modulo_pendiente("📦 Módulo de Inventario", "Error al cargar el módulo", str(e))
+            self._mostrar_error("📦 Inventario", str(e))
     
     def mostrar_ventas(self):
-        self._mostrar_modulo_pendiente("💰 Módulo de Ventas", "Próximamente en Sprint 2")
-    
-    def mostrar_despachos(self):
-        self._mostrar_modulo_pendiente("📋 Módulo de Despachos", "Próximamente en Sprint 3")
-    
-    def mostrar_empleados(self):
-        self._mostrar_modulo_pendiente("👥 Módulo de Empleados", "Próximamente en Sprint 4")
+        self._limpiar_contenido()
+        try:
+            from views.ventas import VentasFrame
+            ventas = VentasFrame(self)
+            self.main_content.addWidget(ventas)
+            self.main_content.setCurrentWidget(ventas)
+        except Exception as e:
+            self._mostrar_error("💰 Ventas", "Implementando módulo...")
     
     def mostrar_reportes(self):
-        self._mostrar_modulo_pendiente("📊 Módulo de Reportes", "Próximamente en Sprint 5")
+        self._limpiar_contenido()
+        self._mostrar_error("📊 Reportes", "Próximamente en Sprint 3")
+    
+    def mostrar_empleados(self):
+        self._limpiar_contenido()
+        self._mostrar_error("👥 Empleados", "Próximamente en Sprint 3")
     
     def mostrar_compras(self):
-        self._mostrar_modulo_pendiente("🛒 Módulo de Compras", "Próximamente en Sprint 6")
+        self._limpiar_contenido()
+        self._mostrar_error("🛒 Compras", "Próximamente en Sprint 4")
     
-    def mostrar_categorias(self):
-        self._mostrar_modulo_pendiente("📁 Módulo de Categorías", "Próximamente en Sprint 2")
+    def mostrar_despachos(self):
+        self._limpiar_contenido()
+        self._mostrar_error("🚛 Despachos", "Próximamente en Sprint 4")
     
-    def _mostrar_modulo_pendiente(self, titulo, subtitulo, error=None):
-        self.limpiar_main()
-        
-        pendiente_widget = QWidget()
-        pendiente_layout = QVBoxLayout(pendiente_widget)
-        pendiente_layout.setAlignment(Qt.AlignCenter)
-        
-        emoji_label = QLabel("🚧")
-        emoji_label.setAlignment(Qt.AlignCenter)
-        emoji_label.setStyleSheet("""
-            QLabel {
-                font-size: 60px;
-                margin-bottom: 20px;
-            }
-        """)
-        
-        titulo_label = QLabel(titulo)
-        titulo_label.setAlignment(Qt.AlignCenter)
-        titulo_label.setStyleSheet("""
-            QLabel {
-                font-size: 24px;
-                color: #95a5a6;
-                font-family: Arial;
-                margin-bottom: 10px;
-            }
-        """)
-        
-        subtitulo_label = QLabel(subtitulo)
-        subtitulo_label.setAlignment(Qt.AlignCenter)
-        subtitulo_label.setStyleSheet("""
-            QLabel {
-                font-size: 14px;
-                color: #7f8c8d;
-                font-family: Arial;
-            }
-        """)
-        
-        pendiente_layout.addWidget(emoji_label)
-        pendiente_layout.addWidget(titulo_label)
-        pendiente_layout.addWidget(subtitulo_label)
-        
-        if error:
-            error_label = QLabel(f"Error: {error}")
-            error_label.setAlignment(Qt.AlignCenter)
-            error_label.setStyleSheet("""
-                QLabel {
-                    font-size: 12px;
-                    color: #e74c3c;
-                    font-family: Arial;
-                    margin-top: 10px;
-                    padding: 10px;
-                    background-color: #fdf2f2;
-                    border: 1px solid #e74c3c;
-                    border-radius: 4px;
-                }
-            """)
-            error_label.setWordWrap(True)
-            pendiente_layout.addWidget(error_label)
-        
-        self.main_content.addWidget(pendiente_widget)
-        self.main_content.setCurrentWidget(pendiente_widget)
+    def mostrar_configuracion(self):
+        self._limpiar_contenido()
+        self._mostrar_error("⚙️ Configuración", "Próximamente en Sprint 4")
     
-    def _cerrar_sesion(self):
-        reply = QMessageBox.question(self, "Cerrar Sesión", 
-                                   "¿Estás seguro que deseas cerrar la sesión?",
-                                   QMessageBox.Yes | QMessageBox.No, 
-                                   QMessageBox.No)
+    def _mostrar_error(self, titulo, mensaje):
+        widget = QWidget()
+        layout = QVBoxLayout(widget)
+        layout.setAlignment(Qt.AlignCenter)
         
-        if reply == QMessageBox.Yes:
-            self.finished.emit()  # Emitir señal antes de cerrar
-            self.close()
+        emoji = QLabel("🚧")
+        emoji.setAlignment(Qt.AlignCenter)
+        emoji.setStyleSheet("font-size: 48px; margin: 20px;")
+        
+        title_label = QLabel(titulo)
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setStyleSheet("font-size: 18px; color: #95a5a6; margin: 10px;")
+        
+        msg_label = QLabel(mensaje)
+        msg_label.setAlignment(Qt.AlignCenter)
+        msg_label.setStyleSheet("font-size: 14px; color: #7f8c8d;")
+        
+        layout.addWidget(emoji)
+        layout.addWidget(title_label)
+        layout.addWidget(msg_label)
+        
+        self.main_content.addWidget(widget)
+        self.main_content.setCurrentWidget(widget)
     
     def closeEvent(self, event):
-        # Emitir señal cuando se cierre la ventana
-        self.finished.emit()
-        event.accept()    
+        """Cerrar toda la aplicación cuando se cierre el dashboard con X"""
+        from PyQt5.QtWidgets import QApplication
+        QApplication.quit()
+        event.accept()

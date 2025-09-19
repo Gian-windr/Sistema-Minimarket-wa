@@ -65,7 +65,7 @@ class ProductoModel(BaseModel):
             print(f"Error obteniendo producto {producto_id}: {e}")
             return None
     
-    def creaProducto(self, datos):
+    def crearProducto(self, datos):
         try:
             # Generar ID único
             nuevo_id = generar_id("P")
@@ -73,7 +73,7 @@ class ProductoModel(BaseModel):
             # Manejar imagen si existe
             imagen_destino = ""
             if datos.get("imagen_origen"):
-                imagen_destino = self._copiar_imagen(datos["imagen_origen"], nuevo_id)
+                imagen_destino = self.plagiarImagen(datos["imagen_origen"], nuevo_id)
             
             # Mapear datos al formato SQLite
             producto_data = {
@@ -104,7 +104,7 @@ class ProductoModel(BaseModel):
             # Manejar imagen si se proporciona una nueva
             imagen_destino = None
             if datos.get("imagen_origen"):
-                imagen_destino = self._copiar_imagen(datos["imagen_origen"], producto_id)
+                imagen_destino = self.plagiarImagen(datos["imagen_origen"], producto_id)
             
             # Mapear datos al formato SQLite
             update_data = {}
@@ -137,7 +137,7 @@ class ProductoModel(BaseModel):
             print(f"Error eliminando producto {producto_id}: {e}")
             return False
     
-    def _copiar_imagen(self, origen, producto_id):
+    def plagiarImagen(self, origen, producto_id):
         try:
             if not os.path.exists(origen):
                 return ""
@@ -195,7 +195,7 @@ class ProductoModel(BaseModel):
             import pandas as pd
             return pd.DataFrame(columns=self.columnas)
 
-    def obtener_stock_bajo(self):
+    def obtenerStockBajo(self):
         try:
             productos = self.get_all()
             productos_problematicos = []

@@ -24,17 +24,17 @@ class LoginVentana(QMainWindow):
         main_layout.setSpacing(0)
         
         self.usuario_logueado = None
-        self._crear_interfaz(main_layout)
-        self._centrar_ventana()
+        self.crearInterfaz(main_layout)
+        self.centrarVentana()
     
-    def _centrar_ventana(self):
+    def centrarVentana(self):
         screen = QApplication.primaryScreen().geometry()
         size = self.geometry()
         x = (screen.width() - size.width()) // 2
         y = (screen.height() - size.height()) // 2
         self.move(x, y)
     
-    def _crear_interfaz(self, main_layout):
+    def crearInterfaz(self, main_layout):
         # LADO IZQUIERDO - Imagen del minimarket
         left_frame = QFrame()
         left_frame.setStyleSheet("background-color: #f8f9fa;")
@@ -80,16 +80,16 @@ class LoginVentana(QMainWindow):
         form_layout.setSpacing(20)
         
         # Logo y título
-        self._crear_seccion_logo(form_layout)
+        self.crearSeccionLogo(form_layout)
         
         # Campos del formulario
-        self._crear_campos_formulario(form_layout)
+        self.crearCamposFormularios(form_layout)
         
         # Añadir frames al layout principal
         main_layout.addWidget(left_frame, 3)  # 60% del espacio
         main_layout.addWidget(right_frame, 2)  # 40% del espacio
     
-    def _crear_seccion_logo(self, form_layout):
+    def crearSeccionLogo(self, form_layout):
         try:
             # Cargar logo
             logo_label = QLabel()
@@ -136,7 +136,7 @@ class LoginVentana(QMainWindow):
         """)
         form_layout.addWidget(subtitulo_label)
     
-    def _crear_campos_formulario(self, form_layout):
+    def crearCamposFormularios(self, form_layout):
         # Campo Usuario
         usuario_label = QLabel("Nombre de usuario")
         usuario_label.setStyleSheet("""
@@ -217,7 +217,7 @@ class LoginVentana(QMainWindow):
         """)
         login_btn.setFixedHeight(45)
         login_btn.setCursor(Qt.PointingHandCursor)
-        login_btn.clicked.connect(self._login)
+        login_btn.clicked.connect(self.LOGIN)
         form_layout.addWidget(login_btn)
         
         # Link olvidé contraseña
@@ -238,12 +238,12 @@ class LoginVentana(QMainWindow):
         
         # Conectar Enter para navegación
         self.usuario_entry.returnPressed.connect(self.password_entry.setFocus)
-        self.password_entry.returnPressed.connect(self._login)
+        self.password_entry.returnPressed.connect(self.LOGIN)
         
         # Foco inicial
         self.usuario_entry.setFocus()
     
-    def _login(self):
+    def LOGIN(self):
         usuario = self.usuario_entry.text().strip()
         password = self.password_entry.text().strip()
         
@@ -252,15 +252,15 @@ class LoginVentana(QMainWindow):
             return
         
         # Validar credenciales
-        if self._validar_credenciales(usuario, password):
+        if self.validarCredenciales(usuario, password):
             self.usuario_logueado = usuario
-            self._abrir_dashboard()
+            self.abrirDashboard()
         else:
             QMessageBox.critical(self, "Error", "Usuario o contraseña incorrectos.")
             self.password_entry.clear()
             self.password_entry.setFocus()
     
-    def _validar_credenciales(self, usuario, password):
+    def validarCredenciales(self, usuario, password):
         try:
             from models.empleado import EmpleadoModel
             empleado_model = EmpleadoModel()
@@ -270,17 +270,16 @@ class LoginVentana(QMainWindow):
             # Credenciales por defecto si hay error
             return usuario == "admin" and password == "admin"
     
-    def _abrir_dashboard(self):
+    def abrirDashboard(self):
         self.hide()
         from views.dashboard import Dashboard
         
         self.dashboard = Dashboard(self.usuario_logueado)
         self.dashboard.show()
         
-        # Conectar señal para volver al login cuando el dashboard se cierre
-        self.dashboard.finished.connect(self._volver_al_login)
+        # No necesitamos conectar señales ya que el Dashboard cierra toda la aplicación
     
-    def _volver_al_login(self):
+    def volverLogin(self):
         self.show()
         self.usuario_entry.clear()
         self.password_entry.clear()

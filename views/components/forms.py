@@ -21,18 +21,30 @@ class ProductoForm(QDialog):
         self.img_path = ""
         self.entries = {}
         
-        self._crear_interfaz()
-        if producto_data is not None and not producto_data.empty:
-            self._llenar_campos()
+        self.crearInterfaz()
+        if producto_data is not None:
+            # Verificar si es pandas Series o dict y tiene datos
+            if hasattr(producto_data, 'empty'):
+                if not producto_data.empty:
+                    self.llenarCampos()
+            elif producto_data:  # Para dict u otros tipos
+                self.llenarCampos()
     
-    def _crear_interfaz(self):
+    def crearInterfaz(self):
         # Layout principal
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(15)
         
         # Título
-        titulo = "Modificar Producto" if (self.producto_data is not None and not self.producto_data.empty) else "Registrar Producto"
+        es_modificar = False
+        if self.producto_data is not None:
+            if hasattr(self.producto_data, 'empty'):
+                es_modificar = not self.producto_data.empty
+            else:
+                es_modificar = bool(self.producto_data)
+        
+        titulo = "Modificar Producto" if es_modificar else "Registrar Producto"
         titulo_label = QLabel(titulo)
         titulo_label.setAlignment(Qt.AlignCenter)
         titulo_label.setStyleSheet(f"""
@@ -112,7 +124,7 @@ class ProductoForm(QDialog):
                 background-color: #5a6268;
             }
         """)
-        btn_nueva_categoria.clicked.connect(self._agregar_categoria_rapido)
+        btn_nueva_categoria.clicked.connect(self.agregarCategoriasRapido)
         
         categoria_layout.addWidget(categoria_label)
         categoria_layout.addWidget(self.categoria_cb)
@@ -167,7 +179,7 @@ class ProductoForm(QDialog):
                 background-color: #138496;
             }
         """)
-        btn_seleccionar.clicked.connect(self._seleccionar_imagen)
+        btn_seleccionar.clicked.connect(self.seleccionarImagen)
         
         self.img_info_label = QLabel("")
         self.img_info_label.setStyleSheet("color: #6c757d; font-size: 11px;")
@@ -185,9 +197,9 @@ class ProductoForm(QDialog):
         botones_layout = QHBoxLayout()
         botones_layout.setSpacing(10)
         
-        texto_guardar = "💾 Guardar Cambios" if (self.producto_data is not None and not self.producto_data.empty) else "💾 Guardar"
-        btn_guardar = QPushButton(texto_guardar)
-        btn_guardar.setStyleSheet(f"""
+        textoguardar = "💾 Guardar Cambios" if (self.producto_data is not None and not self.producto_data.empty) else "💾 Guardar"
+        btnguardar = QPushButton(textoguardar)
+        btnguardar.setStyleSheet(f"""
             QPushButton {{
                 background-color: {INFO_COLOR};
                 color: white;
@@ -201,7 +213,7 @@ class ProductoForm(QDialog):
                 background-color: #2980b9;
             }}
         """)
-        btn_guardar.clicked.connect(self._guardar)
+        btnguardar.clicked.connect(self.guardar)
         
         btn_cancelar = QPushButton("❌ Cancelar")
         btn_cancelar.setStyleSheet(f"""
@@ -221,13 +233,13 @@ class ProductoForm(QDialog):
         btn_cancelar.clicked.connect(self.reject)
         
         botones_layout.addStretch()
-        botones_layout.addWidget(btn_guardar)
+        botones_layout.addWidget(btnguardar)
         botones_layout.addWidget(btn_cancelar)
         botones_layout.addStretch()
         
         main_layout.addLayout(botones_layout)
     
-    def _llenar_campos(self):
+    def llenarCampos(self):
         if self.producto_data is None or self.producto_data.empty:
             return
         
@@ -257,7 +269,7 @@ class ProductoForm(QDialog):
             self.img_path = imagen_actual
             self.img_info_label.setText(os.path.basename(imagen_actual))
     
-    def _agregar_categoria_rapido(self):
+    def agregarCategoriasRapido(self):
         nueva_categoria, ok = QInputDialog.getText(self, "Nueva Categoría", 
                                                   "Ingrese el nombre de la nueva categoría:")
         
@@ -284,7 +296,7 @@ class ProductoForm(QDialog):
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"No se pudo agregar la categoría: {e}")
     
-    def _seleccionar_imagen(self):
+    def seleccionarImagen(self):
         file_dialog = QFileDialog()
         path, _ = file_dialog.getOpenFileName(self, "Seleccionar imagen", "", 
                                             "Imágenes (*.png *.jpg *.jpeg *.gif *.bmp)")
@@ -292,7 +304,7 @@ class ProductoForm(QDialog):
             self.img_path = path
             self.img_info_label.setText(os.path.basename(path))
     
-    def _validar_datos(self):
+    def validarDatos(self):
         nombre = self.entries["Nombre"].text().strip()
         categoria = self.categoria_cb.currentText().strip()
         
@@ -331,7 +343,7 @@ class ProductoForm(QDialog):
             "imagen_origen": self.img_path if self.img_path else None
         }
 
-    def _guardar(self):
+    def guardar(self):
         raise NotImplementedError("Debe implementarse en la clase hija")
 
 class ImagenViewer(QLabel):
@@ -350,7 +362,7 @@ class ImagenViewer(QLabel):
         """)
         self.imagen_actual = None
     
-    def mostrar_imagen(self, ruta_imagen, tamaño=(200, 200)):
+    def mostrarImagen(self, ruta_imagen, tamaño=(200, 200)):
         try:
             # Limpiar imagen anterior primero
             self.limpiar()
