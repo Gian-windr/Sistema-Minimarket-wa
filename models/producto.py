@@ -2,8 +2,8 @@
 
 import os
 import shutil
-from config.settings import *
-from utils.helpers import generar_id
+from views.settings import *
+from models.helpers import generar_id
 from models.base_model import BaseModel
 from db.database import db
 
@@ -13,6 +13,40 @@ class ProductoModel(BaseModel):
         columns = ['id', 'nombre', 'categoria', 'tipo_corte', 'precio', 'stock', 'stock_minimo', 'imagen']
         super().__init__('productos', columns)
         self.columnas = ["ID", "Nombre", "Categoría", "Tipo de Corte", "Precio", "Stock", "Stock Mínimo", "Imagen"]
+    
+    def generar_siguiente_id(self):
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            # Obtener todos los IDs existentes ordenados
+            cursor.execute("SELECT id FROM productos ORDER BY id ASC")
+            ids_existentes = [row[0] for row in cursor.fetchall()]
+            
+            # Buscar el primer hueco en la secuencia
+            for i in range(1, 9999):  # P0001 hasta P9999
+                id_esperado = f"P{i:04d}"
+                if id_esperado not in ids_existentes:
+                    conn.close()
+                    return id_esperado
+            
+            # Si no hay huecos, usar el siguiente después del último
+            if ids_existentes:
+                # Extraer el número del último ID
+                ultimo_id = max(ids_existentes)
+                ultimo_numero = int(ultimo_id[1:])  # Remover 'P' y convertir a int
+                nuevo_numero = ultimo_numero + 1
+            else:
+                nuevo_numero = 1
+            
+            conn.close()
+            return f"P{nuevo_numero:04d}"
+            
+        except Exception as e:
+            print(f"Error generando ID: {e}")
+            # Fallback: usar timestamp
+            from datetime import datetime
+            return f"P{datetime.now().strftime('%Y%m%d%H%M%S')}"
     
     def obtener_todos(self):
         try:
@@ -67,8 +101,8 @@ class ProductoModel(BaseModel):
     
     def crearProducto(self, datos):
         try:
-            # Generar ID único
-            nuevo_id = generar_id("P")
+            # Generar ID usando el nuevo sistema P0001, P0002, etc.
+            nuevo_id = self.generar_siguiente_id()
             
             # Manejar imagen si existe
             imagen_destino = ""

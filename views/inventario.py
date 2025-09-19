@@ -9,9 +9,9 @@ from PyQt5.QtGui import QFont
 import pandas as pd
 from PIL import Image
 from models.producto import ProductoModel
-from views.components.forms import ProductoForm, ImagenViewer
-from utils.helpers import formatear_precio
-from config.settings import *
+from models.forms import ProductoForm, ImagenViewer
+from models.helpers import formatear_precio
+from views.settings import *
 
 class InventarioFrame(QWidget):      
     def __init__(self, parent):
@@ -231,7 +231,7 @@ class InventarioFrame(QWidget):
                         
                         if imagen_path and os.path.exists(imagen_path):
                             print("✅ Mostrando imagen")
-                            self.img_viewer.mostrar_imagen(imagen_path)
+                            self.img_viewer.mostrarImagen(imagen_path)
                         else:
                             print("⚠️ Imagen no encontrada, limpiando visor")
                             self.img_viewer.limpiar()
@@ -334,13 +334,13 @@ class AgregarProductoForm(ProductoForm):
         super().__init__(parent, "Registrar Producto")
     
     def guardar(self):
-        datos = self._validar_datos()
+        datos = self.validarDatos()
         if datos is None:
             return
         
         try:
             producto_model = ProductoModel()
-            nuevo_id = producto_model.creaProducto(datos)
+            nuevo_id = producto_model.crearProducto(datos)
             QMessageBox.information(self, "Éxito", "Producto registrado correctamente.")
             self.parent_frame.mostrarInventario()
             self.close()
@@ -361,7 +361,7 @@ class ModificarProductoForm(ProductoForm):
         super().__init__(parent, "Modificar Producto", producto_data)
     
     def guardar(self):
-        datos = self._validar_datos()
+        datos = self.validarDatos()
         if datos is None:
             return
         

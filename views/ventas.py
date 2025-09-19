@@ -4,10 +4,10 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QTableWidget, QTableWidgetItem, 
                              QLineEdit, QSpinBox, QMessageBox, QFrame)
 from PyQt5.QtCore import Qt
-from config.settings import *
+from views.settings import *
 from models.producto import ProductoModel
 from models.venta import VentaModel
-from utils.helpers import formatear_precio
+from models.helpers import formatear_precio
 import pandas as pd
 
 class VentasFrame(QWidget):

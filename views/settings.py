@@ -20,7 +20,7 @@ os.makedirs(IMG_DIR, exist_ok=True)
 
 # Configuraciones de la aplicación
 APP_NAME = "Minimarket Don Manuelito"
-APP_VERSION = "2.0.0 - SQLite Migration"
+APP_VERSION = "1.5.190925"
 WINDOW_SIZE = "1800x1200"
 
 # Configuración de base de datos

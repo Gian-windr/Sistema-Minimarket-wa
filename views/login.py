@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QMessageBox, QFrame)
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap, QIcon, QFont
-from config.settings import *
+from views.settings import *
 from PIL import Image
 
 class LoginVentana(QMainWindow):
@@ -288,4 +288,4 @@ class LoginVentana(QMainWindow):
     def closeEvent(self, event):
         # Cerrar toda la aplicación cuando se cierre el login
         QApplication.quit()
-        event.accept()
+        event.accept()  

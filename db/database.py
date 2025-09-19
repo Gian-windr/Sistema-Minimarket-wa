@@ -2,7 +2,7 @@
 
 import sqlite3
 import os
-from config.settings import DB_DIR
+from views.settings import DB_DIR
 
 class Database:
     def __init__(self):
@@ -24,6 +24,20 @@ class Database:
                 descripcion TEXT,
                 fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        ''')
+        
+        # Tabla de secuencias para generar IDs personalizados
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS secuencias (
+                tabla TEXT PRIMARY KEY,
+                ultimo_numero INTEGER DEFAULT 0
+            )
+        ''')
+        
+        # Insertar secuencia para productos si no existe
+        cursor.execute('''
+            INSERT OR IGNORE INTO secuencias (tabla, ultimo_numero) 
+            VALUES ('productos', 0)
         ''')
         
         # Tabla de productos

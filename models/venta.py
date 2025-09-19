@@ -8,15 +8,13 @@ from datetime import datetime
 class VentaModel:
     def __init__(self):
         self.database = Database()
-        self._crear_tablas()
+        self.crearTablas()
     
-    def _get_connection(self):
-        """Obtener nueva conexión cada vez"""
+    def getConexion(self):
         return self.database.get_connection()
     
-    def _crear_tablas(self):
-        """Crear tablas de ventas si no existen"""
-        conexion = self._get_connection()
+    def crearTablas(self):
+        conexion = self.getConexion()
         cursor = conexion.cursor()
         
         # Verificar si la tabla ventas ya existe con estructura antigua
@@ -62,8 +60,7 @@ class VentaModel:
         conexion.commit()
         conexion.close()
     
-    def generar_id_venta(self):
-        """Generar ID único para la venta"""
+    def generarIDVenta(self):
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")[:-3]  # Sin microsegundos completos
         return f"V{timestamp}"
     
@@ -80,13 +77,13 @@ class VentaModel:
             tuple: (success, venta_id, mensaje)
         """
         try:
-            venta_id = self.generar_id_venta()
+            venta_id = self.generarIDVenta()
             fecha_hora = datetime.now()
             
             # Calcular total
             total = sum(item['total'] for item in carrito)
             
-            conexion = self._get_connection()
+            conexion = self.getConexion()
             cursor = conexion.cursor()
             
             # Insertar venta principal (usando estructura existente)
@@ -126,11 +123,10 @@ class VentaModel:
                 conexion.close()
             return False, None, f"Error al procesar venta: {str(e)}"
     
-    def obtener_venta(self, venta_id):
-        """Obtener información de una venta específica"""
+    def obtenerVenta(self, venta_id):
         try:
             # Información principal de la venta
-            conexion = self._get_connection()
+            conexion = self.getConexion()
             venta = pd.read_sql_query('''
                 SELECT * FROM ventas WHERE id = ?
             ''', conexion, params=[venta_id])
@@ -147,13 +143,12 @@ class VentaModel:
             print(f"Error al obtener venta: {e}")
             return pd.DataFrame(), pd.DataFrame()
     
-    def obtener_ventas_del_dia(self, fecha=None):
-        """Obtener todas las ventas de un día específico"""
+    def obtenerVentaxDia(self, fecha=None):
         if fecha is None:
             fecha = datetime.now().date()
         
         try:
-            conexion = self._get_connection()
+            conexion = self.getConexion()
             ventas = pd.read_sql_query('''
                 SELECT v.*, COUNT(vd.id) as items_vendidos
                 FROM ventas v
@@ -170,13 +165,12 @@ class VentaModel:
             print(f"Error al obtener ventas del día: {e}")
             return pd.DataFrame()
     
-    def obtener_resumen_dia(self, fecha=None):
-        """Obtener resumen de ventas del día"""
+    def obtenerResumenDia(self, fecha=None):
         if fecha is None:
             fecha = datetime.now().date()
         
         try:
-            conexion = self._get_connection()
+            conexion = self.getConexion()
             cursor = conexion.cursor()
             
             # Total de ventas
@@ -208,8 +202,7 @@ class VentaModel:
                 'venta_promedio': 0.0
             }
     
-    def obtener_productos_mas_vendidos(self, limite=10, fecha=None):
-        """Obtener productos más vendidos"""
+    def obtenerProductosMasVendidos(self, limite=10, fecha=None):
         fecha_filtro = ""
         params = [limite]
         
@@ -218,7 +211,7 @@ class VentaModel:
             params.insert(0, fecha)
         
         try:
-            conexion = self._get_connection()
+            conexion = self.getConexion()
             query = f'''
                 SELECT 
                     vd.producto_nombre,
@@ -242,5 +235,4 @@ class VentaModel:
             return pd.DataFrame()
     
     def cerrar_conexion(self):
-        """Cerrar conexión a la base de datos - No necesario con el nuevo diseño"""
         pass

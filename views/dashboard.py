@@ -3,7 +3,7 @@
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QPushButton, QFrame, QStackedWidget)
 from PyQt5.QtCore import Qt
-from config.settings import *
+from views.settings import *
 
 class Dashboard(QMainWindow):
     def __init__(self, usuario):
