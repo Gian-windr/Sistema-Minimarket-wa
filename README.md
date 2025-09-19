@@ -100,3 +100,50 @@ Sistema-Minimarket-wa/
 | **Perez R.,	Hugo**     | **Developer** |
 | **Rodriguez M., Rodrigo**     | **Developer** |
 | **Zumaeta C., Adriel**     | **Developer** |
+
+---
+
+## 📦 EJECUTABLE DISTRIBUIBLE
+
+### 🚀 Versión Standalone para Distribución
+
+El sistema está disponible como **ejecutable independiente** que no requiere Python instalado:
+
+#### 📥 **Descarga y Uso:**
+- **Archivo:** `SistemaMinimarket_Fixed.exe` (102.4 MB)
+- **Ubicación:** `/dist/SistemaMinimarket_Fixed.exe`
+- **Plataforma:** Windows 10/11
+- **Instalación:** ❌ **NO REQUIERE** - Ejecutar directamente
+
+#### ✅ **Características del Ejecutable:**
+- 🏪 **Sistema completo** con todas las funcionalidades
+- 🔐 **Login integrado** (Usuario: `admin`, Contraseña: `admin`)
+- 📦 **Gestión de inventarios** con sistema P0001
+- 💰 **Punto de venta (POS)** completo
+- 📊 **Reportes automáticos** (PDF y Excel)
+- 🗄️ **Base de datos SQLite** incluida
+- 🖼️ **Interfaz PyQt5** profesional
+
+#### 🎯 **Para Distribución Comercial:**
+1. **Copiar** solo el archivo `SistemaMinimarket_Fixed.exe`
+2. **Compartir** con cualquier PC Windows
+3. **Ejecutar** con doble clic
+4. **¡Listo!** - Sistema completamente funcional
+
+#### 📋 **Dependencias Incluidas:**
+- Python 3.13 Runtime
+- PyQt5 (Interfaz gráfica)  
+- SQLite (Base de datos)
+- Pandas + OpenPyXL (Reportes Excel)
+- ReportLab (PDFs)
+- PIL/Pillow (Imágenes)
+- Todas las librerías del sistema
+
+#### ⚙️ **Scripts de Compilación:**
+- `crear_exe_simple.bat` - Script principal para generar ejecutable
+- `build_exe.ps1` - Script PowerShell alternativo con validaciones
+- `SistemaMinimarket_Fixed.spec` - Configuración PyInstaller optimizada
+
+> 💡 **Nota:** El ejecutable incluye correcciones de compatibilidad y todas las dependencias de Visual C++ Runtime para funcionamiento sin errores en cualquier PC Windows.
+
+---
