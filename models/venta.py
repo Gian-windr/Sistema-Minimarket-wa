@@ -234,5 +234,10 @@ class VentaModel:
             print(f"Error al obtener productos más vendidos: {e}")
             return pd.DataFrame()
     
+    # Alias para compatibilidad con views/ventas.py
+    def obtener_resumen_dia(self, fecha=None):
+        """Alias para obtenerResumenDia - mantiene compatibilidad"""
+        return self.obtenerResumenDia(fecha)
+    
     def cerrar_conexion(self):
         pass
