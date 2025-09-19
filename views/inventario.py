@@ -1,4 +1,5 @@
-## Vista del módulo de inventario - PyQt5 Version
+## Módulo de Inventario - PyQt5
+## Gestión de productos con sistema IDs P0001
 
 import os
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 

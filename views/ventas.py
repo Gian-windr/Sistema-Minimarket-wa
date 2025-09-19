@@ -1,4 +1,5 @@
 ## Módulo de Ventas - Sistema Minimarket
+## POS integrado con sistema de IDs P0001
 
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QPushButton, QTableWidget, QTableWidgetItem, 
