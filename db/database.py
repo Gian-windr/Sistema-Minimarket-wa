@@ -1,4 +1,5 @@
 ## Configuración y manejo de la base de datos SQLite
+## Sistema de IDs P0001 implementado con tabla de secuencias
 
 import sqlite3
 import os
