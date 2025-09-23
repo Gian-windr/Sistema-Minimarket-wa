@@ -10,10 +10,9 @@ class Dashboard(QMainWindow):
         super().__init__()
         self.usuario = usuario
         self.setWindowTitle(f"{APP_NAME} - {usuario}")
-        self.setGeometry(100, 100, 1200, 700)
-        
-        self._crear_interfaz()
-        self._centrar_ventana()
+        self.showMaximized()
+    
+        self._crear_Robotofaz()
     
     def _centrar_ventana(self):
         from PyQt5.QtWidgets import QApplication
@@ -21,7 +20,7 @@ class Dashboard(QMainWindow):
         size = self.geometry()
         self.move((screen.width() - size.width()) // 2, (screen.height() - size.height()) // 2)
     
-    def _crear_interfaz(self):
+    def _crear_Robotofaz(self):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
@@ -56,21 +55,21 @@ class Dashboard(QMainWindow):
     def _crear_header(self):
         header = QFrame()
         header.setStyleSheet(f"background-color: {THEME_COLOR}; color: white;")
-        header.setFixedHeight(60)
+        header.setFixedHeight(85)
         
         layout = QHBoxLayout(header)
         layout.setContentsMargins(20, 10, 20, 10)
         
         # Título
         titulo = QLabel(f"🏪 {APP_NAME}")
-        titulo.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+        titulo.setStyleSheet("color: white; font-size: 22px; font-weight: bold;")
         layout.addWidget(titulo)
         
         layout.addStretch()
         
         # Usuario
         usuario = QLabel(f"👤 {self.usuario}")
-        usuario.setStyleSheet("color: white; font-size: 12px;")
+        usuario.setStyleSheet("color: white; font-size: 20px;")
         layout.addWidget(usuario)
         
         return header
@@ -78,10 +77,10 @@ class Dashboard(QMainWindow):
     def _crear_menu(self):
         menu = QFrame()
         menu.setStyleSheet("background-color: #b9c2c4;")
-        menu.setFixedWidth(180)
+        menu.setFixedWidth(230)
         
         layout = QVBoxLayout(menu)
-        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setContentsMargins(20, 20, 10, 10) # →, ↓, ←, ↑
         
         # Botones principales
         botones = [
@@ -103,7 +102,8 @@ class Dashboard(QMainWindow):
                     border: none;
                     padding: 12px;
                     text-align: left;
-                    font-size: 11px;
+                    font-size: 16px;
+                    font-family: 'Roboto';
                     font-weight: bold;
                 }}
                 QPushButton:hover {{
@@ -117,13 +117,13 @@ class Dashboard(QMainWindow):
         layout.addStretch()
         
         # Botón salir
-        btn_salir = QPushButton("❌ Salir")
+        btn_salir = QPushButton("Cerrar Sesión")
         btn_salir.setStyleSheet(f"""
             QPushButton {{
                 background-color: {ERROR_COLOR};
                 color: white;
                 border: none;
-                padding: 10px;
+                padding: 14px;
                 font-weight: bold;
             }}
             QPushButton:hover {{
@@ -225,7 +225,6 @@ class Dashboard(QMainWindow):
         self.main_content.setCurrentWidget(widget)
     
     def closeEvent(self, event):
-        """Cerrar toda la aplicación cuando se cierre el dashboard con X"""
         from PyQt5.QtWidgets import QApplication
         QApplication.quit()
         event.accept()
