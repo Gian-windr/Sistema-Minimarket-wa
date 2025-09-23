@@ -24,7 +24,7 @@ class LoginVentana(QMainWindow):
         main_layout.setSpacing(0)
         
         self.usuario_logueado = None
-        self.crearInterfaz(main_layout)
+        self.crearRobotofaz(main_layout)
         self.centrarVentana()
     
     def centrarVentana(self):
@@ -34,7 +34,7 @@ class LoginVentana(QMainWindow):
         y = (screen.height() - size.height()) // 2
         self.move(x, y)
     
-    def crearInterfaz(self, main_layout):
+    def crearRobotofaz(self, main_layout):
         # LADO IZQUIERDO - Imagen del minimarket
         left_frame = QFrame()
         left_frame.setStyleSheet("background-color: #f8f9fa;")
@@ -116,9 +116,9 @@ class LoginVentana(QMainWindow):
         titulo_label.setStyleSheet("""
             QLabel {
                 color: #1a1a1a;
-                font-size: 24px;
+                font-size: 25px;
                 font-weight: bold;
-                font-family: 'Times New Roman';
+                font-family: 'Roboto';
             }
         """)
         form_layout.addWidget(titulo_label)
@@ -129,8 +129,8 @@ class LoginVentana(QMainWindow):
         subtitulo_label.setStyleSheet("""
             QLabel {
                 color: #6c757d;
-                font-size: 14px;
-                font-family: 'Times New Roman';
+                font-size: 16px;
+                font-family: 'Roboto';
                 margin-bottom: 20px;
             }
         """)
@@ -142,8 +142,8 @@ class LoginVentana(QMainWindow):
         usuario_label.setStyleSheet("""
             QLabel {
                 color: #495057;
-                font-size: 12px;
-                font-family: 'Times New Roman';
+                font-size: 18px;
+                font-family: 'Roboto';
                 margin-bottom: 5px;
             }
         """)
@@ -156,8 +156,8 @@ class LoginVentana(QMainWindow):
                 border: 1px solid #ced4da;
                 border-radius: 4px;
                 padding: 10px;
-                font-size: 12px;
-                font-family: 'Times New Roman';
+                font-size: 18px;
+                font-family: 'Roboto';
             }
             QLineEdit:focus {
                 border: 2px solid #4285F4;
@@ -171,8 +171,8 @@ class LoginVentana(QMainWindow):
         password_label.setStyleSheet("""
             QLabel {
                 color: #495057;
-                font-size: 12px;
-                font-family: 'Times New Roman';
+                font-size: 18px;
+                font-family: 'Roboto';
                 margin-bottom: 5px;
             }
         """)
@@ -186,7 +186,7 @@ class LoginVentana(QMainWindow):
                 border: 1px solid #ced4da;
                 border-radius: 4px;
                 padding: 10px;
-                font-size: 12px;
+                font-size: 18px;
             }
             QLineEdit:focus {
                 border: 2px solid #4285F4;
@@ -204,9 +204,9 @@ class LoginVentana(QMainWindow):
                 border: none;
                 border-radius: 4px;
                 padding: 12px;
-                font-size: 12px;
+                font-size: 18px;
                 font-weight: bold;
-                font-family: 'Times New Roman';
+                font-family: 'Roboto';
             }
             QPushButton:hover {
                 background-color: #3367D6;
@@ -226,7 +226,7 @@ class LoginVentana(QMainWindow):
         forgot_label.setStyleSheet("""
             QLabel {
                 color: #4285F4;
-                font-size: 10px;
+                font-size: 13px;
                 text-decoration: underline;
             }
             QLabel:hover {
