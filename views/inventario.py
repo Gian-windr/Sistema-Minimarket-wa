@@ -23,7 +23,6 @@ class InventarioFrame(QWidget):
         self.mostrarInventario()
     
     def crearInterfaz(self):
-        # Layout principal
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(15)
