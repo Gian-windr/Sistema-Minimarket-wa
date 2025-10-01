@@ -1,0 +1,14 @@
+# Sistema Minimarket Don Manuelito - PyQt Migration
+# Dependencias necesarias
+
+# Manejo de datos
+pandas>=1.5.0
+
+# Base de datos SQLite (incluido en Python estándar)
+# sqlite3 - No requiere instalación adicional
+
+# Manejo de imágenes
+Pillow>=9.0.0
+
+# Interfaz gráfica PyQt5
+PyQt5>=5.15.0
