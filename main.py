@@ -1,42 +1,13 @@
-# -*- coding: utf-8 -*-
 # Sistema de Minimarket Don Manuelito - PyQt5 Version
 
 import sys
-import os
-import locale
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt, QTextCodec
-
-# Configurar la codificación por defecto del sistema
-if sys.version_info[0] >= 3:
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
-
-# Configurar locale para UTF-8
-try:
-    locale.setlocale(locale.LC_ALL, 'es_ES.UTF-8')
-except locale.Error:
-    try:
-        locale.setlocale(locale.LC_ALL, 'Spanish_Spain.1252')
-    except locale.Error:
-        pass  # Usar configuración por defecto
+from PyQt5.QtCore import Qt
 
 def main():
     try:
-        # Configurar variables de entorno para UTF-8
-        os.environ['PYTHONIOENCODING'] = 'utf-8'
-        
         # Crear la aplicación PyQt5
         app = QApplication(sys.argv)
-        
-        # Configurar codec de texto para UTF-8 en PyQt5
-        try:
-            codec = QTextCodec.codecForName("UTF-8")
-            if codec:
-                QTextCodec.setCodecForLocale(codec)
-        except Exception as codec_error:
-            print(f"Advertencia: No se pudo configurar codec UTF-8: {codec_error}")
         
         # Configurar propiedades de la aplicación
         app.setApplicationName("Sistema Minimarket Don Manuelito")

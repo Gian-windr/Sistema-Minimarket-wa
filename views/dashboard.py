@@ -9,22 +9,10 @@ class Dashboard(QMainWindow):
     def __init__(self, usuario):
         super().__init__()
         self.usuario = usuario
-        self.usuario_rol = self._obtener_rol_usuario()
         self.setWindowTitle(f"{APP_NAME} - {usuario}")
         self.showMaximized()
     
         self._crear_Robotofaz()
-    
-    def _obtener_rol_usuario(self):
-        """Obtiene el rol del usuario actual"""
-        try:
-            from models.empleado import EmpleadoModel
-            empleado_model = EmpleadoModel()
-            empleado = empleado_model.obtenerUsuario(self.usuario)
-            return empleado['rol'] if empleado else 'empleado'
-        except Exception as e:
-            print(f"Error obteniendo rol de usuario: {e}")
-            return 'empleado'
     
     def _centrar_ventana(self):
         from PyQt5.QtWidgets import QApplication
@@ -99,14 +87,11 @@ class Dashboard(QMainWindow):
             ("📦 Inventario", self.mostrar_inventario),
             ("💰 Ventas", self.mostrar_ventas),
             ("📊 Reportes", self.mostrar_reportes),
+            ("👥 Empleados", self.mostrar_empleados),
             ("🛒 Compras", self.mostrar_compras),
             ("🚛 Despachos", self.mostrar_despachos),
             ("⚙️ Configuración", self.mostrar_configuracion)
         ]
-        
-        # Agregar gestión de empleados solo para administradores
-        if self.usuario_rol in ['admin']:
-            botones.insert(3, ("👥 Empleados", self.mostrar_empleados))
         
         for texto, comando in botones:
             btn = QPushButton(texto)
@@ -201,13 +186,7 @@ class Dashboard(QMainWindow):
     
     def mostrar_empleados(self):
         self._limpiar_contenido()
-        try:
-            from views.empleados import EmpleadosWidget
-            empleados_widget = EmpleadosWidget(self.usuario_rol)
-            self.main_content.addWidget(empleados_widget)
-            self.main_content.setCurrentWidget(empleados_widget)
-        except Exception as e:
-            self._mostrar_error("👥 Empleados", f"Error al cargar módulo: {str(e)}")
+        self._mostrar_error("👥 Empleados", "Próximamente en Sprint 3")
     
     def mostrar_compras(self):
         self._limpiar_contenido()

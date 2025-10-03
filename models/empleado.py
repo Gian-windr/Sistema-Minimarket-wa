@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ## Modelo para manejar los datos de empleados - SQLite
 
 from models.base_model import BaseModel
@@ -74,11 +73,3 @@ class EmpleadoModel(BaseModel):
         except Exception as e:
             print(f"Error obteniendo empleados activos: {e}")
             return []
-    
-    def get_by_id(self, empleado_id):
-        """Obtener empleado por ID"""
-        try:
-            return self.obtenerRegistro(empleado_id)
-        except Exception as e:
-            print(f"Error obteniendo empleado por ID: {e}")
-            return None

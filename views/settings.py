@@ -28,7 +28,6 @@ USE_SQLITE = True  # Cambiar a False para volver a Excel temporalmente
 
 # Colores del tema
 THEME_COLOR = "#256d85"
-THEME_COLOR_HOVER = "#1e5a6b"  # Versión más oscura para hover
 SUCCESS_COLOR = "#2ecc71"
 WARNING_COLOR = "#f39c12"
 ERROR_COLOR = "#e74c3c"

@@ -73,44 +73,24 @@ class BaseModel: # Clase base para modelos CRUD
         if not valid_data:
             raise ValueError("No hay datos válidos para actualizar")
         
-        # Procesar valores para manejar caracteres especiales
-        processed_data = {}
-        for k, v in valid_data.items():
-            if isinstance(v, str):
-                # Normalizar caracteres especiales y asegurar codificación correcta
-                import unicodedata
-                try:
-                    # Normalizar y convertir a UTF-8
-                    normalized_value = unicodedata.normalize('NFC', v)
-                    processed_data[k] = normalized_value
-                except (UnicodeError, UnicodeEncodeError):
-                    # Si hay problemas, usar el valor original
-                    processed_data[k] = v
-            else:
-                processed_data[k] = v
-        
         # Agregar fecha de actualización si existe la columna
         if 'fecha_actualizacion' in self.columns:
-            processed_data['fecha_actualizacion'] = datetime.now().isoformat()
+            valid_data['fecha_actualizacion'] = datetime.now().isoformat()
         
-        set_clause = ', '.join([f"{k} = ?" for k in processed_data.keys()])
-        values = list(processed_data.values()) + [record_id]
+        set_clause = ', '.join([f"{k} = ?" for k in valid_data.keys()])
+        values = list(valid_data.values()) + [record_id]
         
         query = f"UPDATE {self.table_name} SET {set_clause} WHERE {id_column} = ?"
         
         conn = db.get_connection()
         cursor = conn.cursor()
+        cursor.execute(query, values)
         
-        try:
-            cursor.execute(query, values)
-            rows_affected = cursor.rowcount
-            conn.commit()
-            return rows_affected > 0
-        except Exception as e:
-            conn.rollback()
-            raise e
-        finally:
-            conn.close()
+        rows_affected = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        return rows_affected > 0
     
     def eliminarRegistroID(self, record_id, id_column='id'):
         query = f"DELETE FROM {self.table_name} WHERE {id_column} = ?"

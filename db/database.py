@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ## Configuración y manejo de la base de datos SQLite
 ## Sistema de IDs P0001 implementado con tabla de secuencias
 
@@ -12,12 +11,7 @@ class Database:
         self.init_database()
     
     def get_connection(self): # Conecta a la BD - SQLite
-        conn = sqlite3.connect(self.db_path)
-        # Configurar la conexión para manejar UTF-8 correctamente
-        conn.execute("PRAGMA encoding = 'UTF-8'")
-        # Usar text_factory para manejar correctamente los strings
-        conn.text_factory = lambda x: str(x, 'utf-8', 'replace') if isinstance(x, bytes) else x
-        return conn
+        return sqlite3.connect(self.db_path)
     
     def init_database(self): # Inicia la BD 
         conn = self.get_connection()

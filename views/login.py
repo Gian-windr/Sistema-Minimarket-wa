@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QLabel, QLineEdit, QPushButton, 
@@ -289,4 +288,4 @@ class LoginVentana(QMainWindow):
     def closeEvent(self, event):
         # Cerrar toda la aplicación cuando se cierre el login
         QApplication.quit()
-        event.accept()
+        event.accept()  
