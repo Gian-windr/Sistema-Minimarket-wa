@@ -21,6 +21,9 @@ venv.bak/
 dev_server.py
 migrate_to_sqlite.py
 README_MODULAR.md
+check_encoding.py
+test_*.py
+empleados.py
 
 # Respaldos y migraciones
 db/backup_excel/
